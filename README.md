@@ -8,14 +8,11 @@ _A Windows command line tool to export iTunes audio playlists as standard or ext
 ## Features
 * 🔗 Connects directly to iTunes using the offical Apple SDK. No parsing of XML files is required.
 * 💾 Export playlists in basic or extended M3U formats.
-* 📤 Export playlists as `.m3u` or `.m3u8` (extended) filenames.
 * 🧠 Export only smart (dynamic rule-based) playlists, regular (manual) playlists or all playlists.
 * 🚫 Exclude exporting any playlist whose name starts with specified text.
 * 🐧 Convert paths (forward slashes and LF endings) for Linux.
 * 🔁 Rewrite paths to make exported playlists portable.
 * 🧹 Delete existing exports before saving new ones.
-
-
 
 ## Download
 
@@ -23,25 +20,33 @@ Get the latest version from https://github.com/mrsilver76/tunelift/releases. If 
 
 You may need to install the [.NET 8.0 runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime) first. 
 
-This program has been tested on Windows 11, but should also work on Windows 10.
+This program has been tested extensively on Windows 11, but should also work on Windows 10.
 
 ## Quick start guide
+
+Below are a couple of command scenarios for using TuneLift:
 
 ```
 TuneLift.exe -d "c:\temp\playlists"
 ```
-
 * Export all playlists from iTunes and save them into `C:\Temp\Playlists`.
 * Delete any playlists already in the folder before starting.
 
 ```
-TuneLift.exe "C:\Temp\PlayLists" -d -l -f "C:/Users/MrSilver/Music/iTunes/iTunes Media/Music" -r "/home/mrsilver/music"
+TuneLift.exe "C:\Users\MrSilver\Documents\Playlists" -ne -i "run" -ns
 ```
+* Export all playlists to the `My Documents\Playlists` folder owned by `MrSilver`.
+* Use the basic (not extended) `m3u` file format.
+* Don't export any playlists with a title that starts with `run`.
+* Don't export smart (dynamic rule-based) playlists.
 
-* Export all playlists from iTunes and save them into `C:\Temp\Playlists`.
+```
+TuneLift.exe \\raspberry\pi\playlists -d -l -f "C:/Users/MrSilver/Music/iTunes/iTunes Media/Music" -r "/home/pi/music"
+```
+* Export all playlists from iTunes and save them into `\\raspberry\pi\playlists`.
 * Delete any playlists already in the folder before starting.
 * Write the playlist files with Linux paths and file endings.
-* Replace `C:\Users\MrSilver\Music\iTunes\iTunes Media\Music` with `/home/mrsilver/music`.
+* Replace `C:\Users\MrSilver\Music\iTunes\iTunes Media\Music` with `/home/pi/music`.
 
 > [!IMPORTANT]
 > Using `-l` will cause the any backslashes (`\`) in the filename and path to be replaced with with forward slashes (`/`) **before any search and replace is performed**. This is why the search string is written as `C:/Users/MrSilver/Music/iTunes/iTunes Media/Music`.
@@ -59,7 +64,7 @@ If `<destination folder>` doesn't exist then it will be created.
 ### 🎵 Playlist Selection
 
 - **`-ns`, `--no-smart`**  
-  Skips smart (dynamic rule-based playlists) and exports only regular (manual) ones.
+  Skips smart (dynamic rule-based) playlists and exports only regular (manual) ones.
 
 - **`-np`, `--no-playlist`**  
   Skips regular (manual) playlists and only exports smart (dynamic rule-based) playlists.
