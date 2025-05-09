@@ -1,20 +1,29 @@
 # TuneLift
-_A command line program (for Microsoft Windows) to export your audio playlists stored within iTunes as m3u or extended m3u files._
+_A command line application for Windows that exports iTunes audio playlists into standard or extended `.m3u` file formats. It can also adjust the playlist file paths, making them suitable for use across different computers, operating systems (such as Linux), storage solutions (like NAS devices), and embedded systems._
+
+> [!NOTE]
+> This program is a complete rewrite of [iTunes Playlist exporter](https://github.com/mrsilver76/itunes_playlist_exporter) and does not upload playlists to Plex. If you wish to upload
+> playlists to Plex Media Server then please look at [Plex Playlist Uploder](https://github.com/mrsilver76/plex_playlist_uploader).
 
 ## Features
 * 🔗 Connects directly to iTunes using the offical Apple SDK. No parsing of XML files is required.
-* 📄 Export playlists as `.m3u` or `.m3u8`. Save playlists in basic or extended M3U formats.
-* 🧠 Export only smart, only regular or all playlists.
+* 💾 Export playlists in basic or extended M3U formats.
+* 📤 Export playlists as `.m3u` or `.m3u8` (extended) filenames.
+* 🧠 Export only smart (dynamic rule-based) playlists, regular (manual) playlists or all playlists.
 * 🚫 Exclude exporting any playlist whose name starts with specified text.
 * 🐧 Convert paths (forward slashes and LF endings) for Linux.
 * 🔁 Rewrite paths to make exported playlists portable.
 * 🧹 Delete existing exports before saving new ones.
 
+
+
 ## Download
 
-Get the latest version from https://github.com/mrsilver76/tunelift/releases. If you don't want the source code then you should download the exe file for your platform. 
+Get the latest version from https://github.com/mrsilver76/tunelift/releases. If you don't want the source code then you should download the exe file. 
 
-This program has been tested on Windows 11, but should also work on Windows 10. You may need to install the [.NET 8.0 runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime) first. 
+You may need to install the [.NET 8.0 runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime) first. 
+
+This program has been tested on Windows 11, but should also work on Windows 10.
 
 ## Quick start guide
 
@@ -35,7 +44,7 @@ TuneLift.exe "C:\Temp\PlayLists" -d -l -f "C:/Users/MrSilver/Music/iTunes/iTunes
 * Replace `C:\Users\MrSilver\Music\iTunes\iTunes Media\Music` with `/home/mrsilver/music`.
 
 > [!IMPORTANT]
-> Using `-l` for Linux paths will cause the filename and path to be replaced with with `/` **before** any search and replace is performed. As such your search string needs to use `/` otherwise it won't match.
+> Using `-l` will cause the any backslashes (`\`) in the filename and path to be replaced with with forward slashes (`/`) **before any search and replace is performed**. This is why the search string is written as `C:/Users/MrSilver/Music/iTunes/iTunes Media/Music`.
 
 ## Command line options
 
@@ -43,7 +52,9 @@ TuneLift.exe "C:\Temp\PlayLists" -d -l -f "C:/Users/MrSilver/Music/iTunes/iTunes
 TuneLift [options] <destination folder>
 ```
 
-where `[options]` can be 1 or more of the following:
+If `<destination folder>` doesn't exist then it will be created.
+
+`[options]` can be 1 or more of the following:
 
 ### 🎵 Playlist Selection
 
@@ -62,21 +73,21 @@ where `[options]` can be 1 or more of the following:
   Exports playlists with the `.m3u8` extension instead of `.m3u`.
 
 > [!NOTE]
-> **Playlist files are always encoded in UTF-8.** This ensures broad compatibility with file paths and file names that contain non-ASCII characters (eg. accented letters, umlauts or non-Latin symbols). The `-8` flag simply changes the extension to `.m3u8`.
+> **Playlist files are always encoded in UTF-8.** This ensures broad compatibility with file paths and file names that contain non-ASCII characters (eg. accented letters, umlauts or non-Latin symbols). The `--append-8` flag simply changes the extension to `.m3u8`.
 
 - **`-ne`, `--not-extended`**  
-  Outputs basic `.m3u` files without extended metadata (like track duration or title comments). This is useful when trying to use the playlists with simpler or legacy media players.
+  Outputs basic `.m3u` files without extended metadata (track duration or title). This is useful when trying to use the playlists with simpler or legacy media players.
 
 - **`-l`, `--linux`**  
-  Converts Windows-style paths (backslashes) to Linux-style (forward slashes) and uses LF line endings. This is useful when exporting playlist files that will be used on Linux based machines - such as NAS, media servers or embedded systems.
+  Converts Windows-style paths (backslashes) to Linux-style (forward slashes) and uses LF line endings. This is useful when exporting playlist files that will be used on Linux based machines - such as NASes, media servers or embedded systems.
 
 > [!TIP]
-> If you plan to use `--linux` then you may need to manipulate the path so that it correctly points to the songs. See "Path Rewiring" below.
+> If you plan to use `--linux` then you may need to manipulate the path so that it correctly points to the songs. See [Path Rewriting](#-path-rewriting).
 
 ### 🔀 Path Rewriting
 
 - **`-f <text>`, `--find <text>`**  
-  Searches for a specific substring in each file path. This is intended for use with `--replace` to modify paths for different devices or OSes. Searches are case-insensitive.
+  Searches for a specific substring in each file path. This is intended for use with `--replace` to modify paths for different devices or OSes. Searches are case-insensitive and you can only find one substring.
 
 > [!IMPORTANT]
 > When also using `--linux`, backslashes in the path will be replaced with forward slashes **before the search and replace is performed**. As a result, searches containing `/` will always fail unless they are manually replaced with `\`.
@@ -92,9 +103,20 @@ where `[options]` can be 1 or more of the following:
 ### 📖 Help
 
 - **`-h`, `--help`**  
-  Displays the full help text with all available options and usage examples.
+  Displays the full help text with all available options.
 
+## Questions/problems?
 
+Please raise an issue at https://github.com/mrsilver76/tunelift/issues.
+
+## Future improvements
+
+Possible future improvements can be found at https://github.com/mrsilver76/tunelift/labels/enhancement. Unless there is significant interest, it's doubtful I'll implement many of them as the program in its current form seems to suit me just fine.
+
+## Version history
+
+### 0.0.1 (xx November 2024)
+- Initial release.
 
 
 
