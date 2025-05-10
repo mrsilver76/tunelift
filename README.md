@@ -97,6 +97,8 @@ If `<destination folder>` doesn't exist then it will be created.
 
 ### 🔀 Path Rewriting
 
+If you plan on allowing other users/machines/software to access the playlist then you may find that the location embedded in the playlist file isn't accessible for them. For example, `D:\MyMusic` won't be accessible by a NAS or another computer. To solve this you can use the following options to modify your paths so they point to the correct location:
+
 - **`-f <text>`, `--find <text>`**  
   Searches for a specific substring in each file path. This is intended for use with `--replace` to modify paths for different devices or OSes. Searches are case-insensitive and you can only find one substring.
 
