@@ -6,7 +6,7 @@ _A Windows command line tool to export iTunes audio playlists as standard or ext
 > playlists to Plex Media Server then please look at [Plex Playlist Uploder](https://github.com/mrsilver76/plex_playlist_uploader).
 
 ## Features
-* 🔗 Connects directly to iTunes using the offical Apple SDK. No parsing of XML files is required.
+* 🔗 Connects directly to iTunes using the offical Apple SDK, rather than parsing XML files.
 * 💾 Export playlists in basic or extended M3U formats.
 * 🧠 Export only smart (dynamic rule-based) playlists, regular (manual) playlists or all playlists.
 * 🚫 Exclude exporting any playlist whose name starts with specified text.
@@ -28,22 +28,28 @@ Below are a couple of command scenarios for using TuneLift:
 
 ```
 TuneLift.exe -d "c:\temp\playlists"
+
+TuneLift.exe --delete-existing "c:\temp\playlists"
 ```
 * Export all playlists from iTunes and save them into `C:\Temp\Playlists`.
 * Delete any playlists already in the folder before starting.
 
 ```
 TuneLift.exe "C:\Users\MrSilver\Documents\Playlists" -ne -i "run" -ns
+
+TuneLift.exe "C:\Users\MrSilver\Documents\Playlists" --not-extended --ignore "run" --no-smart
 ```
-* Export all playlists to the `My Documents\Playlists` folder owned by `MrSilver`.
+* Export all playlists from iTunes and save them into the `My Documents\Playlists` folder owned by `MrSilver`.
 * Use the basic (not extended) `m3u` file format.
 * Don't export any playlists with a title that starts with `run`.
 * Don't export smart (dynamic rule-based) playlists.
 
 ```
 TuneLift.exe \\raspberry\pi\playlists -d -l -f "C:/Users/MrSilver/Music/iTunes/iTunes Media/Music" -r "/home/pi/music"
+
+TuneLift.exe \\raspberry\pi\playlists --delete-existing --linux --find "C:/Users/MrSilver/Music/iTunes/iTunes Media/Music" --replace "/home/pi/music"
 ```
-* Export all playlists from iTunes and save them into `\\raspberry\pi\playlists`.
+* Export all playlists from iTunes and save them into the shared network folder `\\raspberry\pi\playlists`.
 * Delete any playlists already in the folder before starting.
 * Write the playlist files with Linux paths and file endings.
 * Replace `C:\Users\MrSilver\Music\iTunes\iTunes Media\Music` with `/home/pi/music`.
@@ -54,7 +60,7 @@ TuneLift.exe \\raspberry\pi\playlists -d -l -f "C:/Users/MrSilver/Music/iTunes/i
 ## Command line options
 
 ```
-TuneLift [options] <destination folder>
+TuneLift.exe [options] <destination folder>
 ```
 
 If `<destination folder>` doesn't exist then it will be created.
@@ -107,8 +113,24 @@ If `<destination folder>` doesn't exist then it will be created.
 
 ### 📖 Help
 
-- **`-h`, `--help`**  
+- **`/?`, `-h`, `--help`**  
   Displays the full help text with all available options.
+
+## Common questions
+
+### Can I just double-click on this program from Windows Explorer and it run?
+
+The programs expects at least one command line argument to run, so double-clicking on it in Explorer will not work.
+
+However you can enable this with a couple of steps:
+
+1. Place `TuneLift.exe` wherever you would like to store it.
+2. Right-click on `TuneLift.exe`, select "Show more options" and then "Create shortcut".
+3. Right-click on the newly created `TuneLift.exe - Shortcut` and select "Properties"
+4. In the text box labelled "Target" add the following to the end of the string: `-d "%USERPROFILE%\Documents\Exported iTunes Playlists"`. This tells TuneLift to export all the playlists to a folder called `Exported iTunes Playlists` within your `Documents` folder. The `-d` tells TuneLift to delete any existing playlists in there before exporting. You can change these arguments to anything you want as documented [here](#command-line-options).
+5. Click on "OK"
+6. To run, double-click on `TuneLift.exe - Shortcut`. You can rename this to something more useful and move it elsewhere if you'd like.
+7. Once TuneLift has finished running, the pop-up window will close automatically.
 
 ## Questions/problems?
 
