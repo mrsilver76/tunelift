@@ -187,7 +187,7 @@ namespace TuneLift
         /// </summary>
         public static void CheckLatestRelease()
         {
-            string gitHubRepo = "mrsilver76/retrobat-runner";
+            string gitHubRepo = "mrsilver76/tunelift";
             string iniPath = Path.Combine(appDataPath, "versionCheck.ini");
 
             var parser = new FileIniDataParser();
