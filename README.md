@@ -181,8 +181,8 @@ Possible future improvements can be found at https://github.com/mrsilver76/tunel
 
 ## Version history
 
-### 1.0.0 (xx )
-- Initial release, ported to C# from "iTunes Playlist Exporter".
+### 0.9.0 (12 May 2025)
+- Initial (and early) release, a C# port from "iTunes Playlist Exporter".
 - Removed Plex uploading functionality (to be in a separate program)
 - Moved all options to command line, no editing of code required.
 - Added version checking and notification of updates.
