@@ -1,12 +1,11 @@
 # TuneLift
 _A Windows command line tool to export iTunes audio playlists as standard or extended .m3u files. It can also adjust file paths for compatibility with other computers, operating systems (like Linux), NAS devices, and embedded systems._
 
-> [!NOTE]
-> This program is a complete rewrite of [iTunes Playlist exporter](https://github.com/mrsilver76/itunes_playlist_exporter) and does not upload playlists to Plex. If you wish to upload
-> playlists to Plex Media Server then please look at [Plex Playlist Uploder](https://github.com/mrsilver76/plex_playlist_uploader).
+> [!TIP]
+> Want to use your playlists with Plex? [Plex Playlist Uploader](https://github.com/mrsilver76/plex-playlist-uploader) makes it easy to upload your exported `.m3u` files, the perfect companion to TuneLift.
 
 ## Features
-* 🔗 Connects directly to iTunes via the exposed COM interface), rather than parsing XML files.
+* 🔗 Connects directly to iTunes via the exposed COM interface, rather than parsing XML files.
 * 💾 Export playlists in basic or extended M3U formats.
 * 🧠 Export only smart (dynamic rule-based) playlists, regular (manual) playlists or all playlists.
 * 🚫 Exclude exporting any playlist whose name starts with specified text.
@@ -55,7 +54,7 @@ TuneLift.exe \\raspberry\pi\playlists --delete --linux --find "C:/Users/MrSilver
 * Replace `C:\Users\MrSilver\Music\iTunes\iTunes Media\Music` with `/home/pi/music`.
 
 > [!IMPORTANT]
-> Using `-l` will cause the any backslashes (`\`) in the filename and path to be replaced with with forward slashes (`/`) **before any search and replace is performed**. This is why the search string is written as `C:/Users/MrSilver/Music/iTunes/iTunes Media/Music`.
+> When using `--linux`, path slashes are converted before any `--find` and `--replace` operations. Make sure your `--find` string reflects the adjusted slash style. In the example above, backslashes are converted to `/`, so `--find` must also use forward slashes (`/`.
 
 ## Command line options
 
@@ -103,7 +102,7 @@ If the playlist will be used by other users, machines, or software, the original
   Searches for a specific substring in each file path. This is intended for use with `--replace` to modify paths for different devices or OSes. Searches are case-insensitive and you can only find one substring.
 
 > [!IMPORTANT]
-> When also using `--linux`, backslashes in the path will be replaced with forward slashes **before the search and replace is performed**. As a result, searches containing `/` will always fail unless they are manually replaced with `\`.
+> When also using `--linux`, backslashes in the path will be replaced with forward slashes **before the search and replace is performed**. As a result, searches containing `\` will always fail unless they are manually replaced with `/`.
 
 - **`-r <text>`, `--replace <text>`**  
   Replaces matched text from `--find` with this new value. If `--find` is used and there is no `--replace` value, then it will be assumed to be blank and the matching string will be removed.
@@ -171,23 +170,47 @@ Modern operating systems support filenames with a wide range of characters, incl
 
 TuneLift uses UTF-8 encoding to ensure all filenames, regardless of language or special symbols, are preserved correctly. 
 
+### ❓I'm using `--linux`, why isn't `--find` matching?
+The `--linux` options change all slashes in the song paths before the `--find` and `--replace` logic runs. This means that if your `--find` string uses backslashes then it won’t match the transformed path.
+
+As an example, lets assume your music track is stored in iTunes at:
+```
+D:\Music\Pop\track.mp3
+```
+
+If you run the tool with:
+```
+--linux --find "D:\Music" --replace "/mnt/media"
+```
+then after `--linux` is actioned, the revised path is now:
+```
+D:/Music/Pop/track.mp3
+```
+Since the `--find` string `"D:\Music"` doesn't match `"D:/Music"` there will be no further transformations.
+
+✅ **Correct Usage**   
+Use forward slashes in the `--find` string to match the slash transformation:
+```
+--linux --find "D:/Music" --replace "/mnt/media"
+```
+
+This will correctly transform the path to `/mnt/media/Pop/track.mp3`
+
 ## Questions/problems?
 
 Please raise an issue at https://github.com/mrsilver76/tunelift/issues.
 
-## Future improvements
-
-Possible future improvements can be found at https://github.com/mrsilver76/tunelift/labels/enhancement. Unless there is significant interest, it's doubtful I'll implement many of them as the program in its current form seems to suit me just fine.
-
 ## Version history
 
 ### 0.9.0 (12 May 2025)
-- Initial (and early) release, a C# port from "iTunes Playlist Exporter".
-- Removed Plex uploading functionality (to be in a separate program)
+- Initial release, a C# port from "iTunes Playlist Exporter".
+- Removed Plex uploading functionality, now handled by a separate tool called [Plex Playlist Uploader](https://github.com/mrsilver76/plex-playlist-uploader/).
 - Moved all options to command line, no editing of code required.
-- Added version checking and notification of updates.
-- Logger now outputs to a text file, rather than just the screen.
-- Added `--no-playlist`, `--append-8` and `--delete` options.
+- Added automatic version checking with update notifications.
+- Logger now writes output to a log file instead of just the console.
+- Added `--no-playlist` to skip regular playlists and export only smart ones.
+- Added `--append-8` to use `.m3u8` extension instead of `.m3u`.
+- Added `--delete` to remove `.m3u` files before exporting (for clean re-exports)
 
 
 
