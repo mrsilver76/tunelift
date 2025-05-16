@@ -4,7 +4,7 @@ _A Windows command line tool to export iTunes audio playlists as standard or ext
 > [!TIP]
 > Want to use your playlists with Plex? [Plex Playlist Uploader](https://github.com/mrsilver76/plex-playlist-uploader) makes it easy to upload your exported `.m3u` files, the perfect companion to TuneLift.
 
-## Features
+## 🧰 Features
 * 🔗 Connects directly to iTunes via the exposed COM interface, rather than parsing XML files.
 * 💾 Export playlists in basic or extended M3U formats.
 * 🧠 Export only smart (dynamic rule-based) playlists, regular (manual) playlists or all playlists.
@@ -13,7 +13,7 @@ _A Windows command line tool to export iTunes audio playlists as standard or ext
 * 🔁 Rewrite paths to make exported playlists portable.
 * 🧹 Delete existing exports before saving new ones.
 
-## Download
+## 📦 Download
 
 Get the latest version from https://github.com/mrsilver76/tunelift/releases. If you don't want the source code then you should download the exe file. 
 
@@ -21,7 +21,7 @@ You may need to install the [.NET 8.0 runtime](https://dotnet.microsoft.com/en-u
 
 This program has been tested extensively on Windows 11, but should also work on Windows 10.
 
-## Quick start guide
+## 🚀 Quick start guide
 
 Below are a couple of command scenarios for using TuneLift:
 
@@ -56,7 +56,7 @@ TuneLift.exe \\raspberry\pi\playlists --delete --linux --find "C:/Users/MrSilver
 > [!IMPORTANT]
 > When using `--linux`, path slashes are converted before any `--find` and `--replace` operations. Make sure your `--find` string reflects the adjusted slash style. In the example above, backslashes are converted to `/`, so `--find` must also use forward slashes (`/`.
 
-## Command line options
+## 💻 Command line options
 
 ```
 TuneLift.exe [options] <destination folder>
@@ -66,7 +66,7 @@ If `<destination folder>` doesn't exist then it will be created.
 
 `[options]` can be 1 or more of the following:
 
-### 🎵 Playlist selection
+### Playlist selection
 
 - **`-ns`, `--no-smart`**  
   Skips smart (dynamic rule-based) playlists and exports only regular (manual) ones.
@@ -77,7 +77,7 @@ If `<destination folder>` doesn't exist then it will be created.
 - **`-i <text>`, `--ignore <text>`**  
   Excludes playlists whose names start with `<text>`. This is case-insensitive, so `--ignore temp` will ignore playlists with titles such as "TEMPMIX" and "Temp - Chill".
 
-### 📁 Output format
+### Output format
 
 - **`-8`, `--append-8`**  
   Exports playlists with the `.m3u8` extension instead of `.m3u`.
@@ -94,7 +94,7 @@ If `<destination folder>` doesn't exist then it will be created.
 > [!TIP]
 > If you plan to use `--linux` then you may need to manipulate the path so that it correctly points to the songs. See [Path rewriting](#-path-rewriting).
 
-### 🔀 Path rewriting
+### Path rewriting
 
 If the playlist will be used by other users, machines, or software, the original file paths may not work for them. For example, a path like `D:\MyMusic` might not be accessible from a NAS or another computer. Even if the files are shared, the other system may require a different path, such as `\\mycomputer\MyMusic`. To address this, you can use the options below to rewrite paths so they match the environment where the playlist will be used:
 
@@ -107,19 +107,19 @@ If the playlist will be used by other users, machines, or software, the original
 - **`-r <text>`, `--replace <text>`**  
   Replaces matched text from `--find` with this new value. If `--find` is used and there is no `--replace` value, then it will be assumed to be blank and the matching string will be removed.
 
-### 🧹 File Management
+### File Management
 
 - **`-d`, `--delete`**  
   Deletes playlist files already in the destination folder before exporting new ones.
 
-### 📖 Help
+### Help
 
 - **`/?`, `-h`, `--help`**  
   Displays the full help text with all available options.
 
-## Common questions
+## ❓ Common questions
 
-### ❓Can I just double-click on this program from Windows Explorer and it run?
+### Can I just double-click on this program from Windows Explorer and it run?
 
 The programs expects at least one command line argument to run, so double-clicking on it in Explorer will not work.
 
@@ -133,29 +133,29 @@ However you can enable this with a couple of steps:
 6. To run, double-click on `TuneLift.exe - Shortcut`. You can rename this to something more useful and move it elsewhere if you'd like.
 7. Once TuneLift has finished running, the pop-up window will close automatically.
 
-### ❓Does this work with the Apple Music app in the Windows Store?
+### Does this work with the Apple Music app in the Windows Store?
 
 No. TuneLift requires the classic iTunes application for Windows. The new Apple Music app (available from the Microsoft Store) does not expose a COM interface or support local music library access in the same way. Apple has not provided an alternative API or integration point for third-party tools. If you’ve already migrated your iTunes library to the Apple Music app, you’ll need to reinstall iTunes and revert the migration to use TuneLift.
 
-### ❓What happens if a playlist already exists in the destination folder?
+### What happens if a playlist already exists in the destination folder?
 By default, existing playlist files will be overwritten. If you’d prefer to clean out the folder first, you can use the `-d` option to delete all `.m3u` or `.m3u8` files in the destination before exporting.
 
-### ❓Can I export playlists to a network drive or shared folder?
+### Can I export playlists to a network drive or shared folder?
 Yes, as long as the drive or shared path is accessible and writeable from your system. Make sure the destination is mounted or mapped correctly (e.g., `\\NAS\Music` or a mapped drive like `Z:\`). UNC paths are fully supported.
 
-### ❓Are tracks copied or moved, or is only the playlist file exported?
+### Are tracks copied or moved, or is only the playlist file exported?
 Only the playlist file is exported. TuneLift does not move, copy or modify any of your music files. It simply generates `.m3u` or `.m3u8` files containing references to the existing file locations.
 
-### ❓Can I use this for non-English filenames or folders?
+### Can I use this for non-English filenames or folders?
 Yes. All playlist files are encoded in UTF-8 by default, which ensures that characters like `ü`, `é`, `ß`, or `ñ` are correctly preserved in paths and filenames.
 
-### ❓How are smart playlists handled differently from normal playlists?
+### How are smart playlists handled differently from normal playlists?
 Smart playlists are evaluated in iTunes at runtime and exported as regular playlists containing fixed track lists. You can choose to exclude smart playlists with the `-ns` flag if needed.
 
-### ❓Will this automatically sync new playlists or changes from iTunes?
+### Will this automatically sync new playlists or changes from iTunes?
 No. TuneLift is a manual export tool. It runs once and generates playlist files based on the current state of your iTunes library. If your playlists change later, you'll need to run the export again.
 
-### ❓Should I generate standard m3u or extended m3u files?
+### Should I generate standard m3u or extended m3u files?
 It depends on the level of detail you need in your playlist:
 
 * Standard `.m3u` files are simple, listing only the file paths of the tracks. They’re widely compatible with most music players and devices.
@@ -164,13 +164,13 @@ It depends on the level of detail you need in your playlist:
 > [!TIP]
 > **TuneLift generates extended `.m3u` files encoded in UTF-8 format by default.** This ensures correct preservation of special characters in filenames and paths.
 
-### ❓Why do you encode basic m3u files with UTF-8?
+### Why do you encode basic m3u files with UTF-8?
 
 Modern operating systems support filenames with a wide range of characters, including non-Latin scripts, accented letters, and symbols. Older `m3u` files often relied on limited codepages (like ASCII or ISO-8859-1), which can't accurately represent these characters. As a result, applications that attempt to read the playlist may fail to locate the referenced files, since misencoded characters in the path make the filenames invalid or unrecognisable.
 
 TuneLift uses UTF-8 encoding to ensure all filenames, regardless of language or special symbols, are preserved correctly. 
 
-### ❓I'm using `--linux`, why isn't `--find` matching?
+### I'm using `--linux`, why isn't `--find` matching?
 The `--linux` options change all slashes in the song paths before the `--find` and `--replace` logic runs. This means that if your `--find` string uses backslashes then it won’t match the transformed path.
 
 As an example, lets assume your music track is stored in iTunes at:
@@ -196,9 +196,14 @@ Use forward slashes in the `--find` string to match the slash transformation:
 
 This will correctly transform the path to `/mnt/media/Pop/track.mp3`
 
-## Questions/problems?
+## 🛟 Questions/problems?
 
 Please raise an issue at https://github.com/mrsilver76/tunelift/issues.
+
+## 📝 Attribution
+
+- Apple, iTunes, and macOS are trademarks of Apple Inc., registered in the U.S. and other countries. This tool is not affiliated with or endorsed by Apple Inc.
+- Forklift icon by nawicon - Flaticon (https://www.flaticon.com/free-icons/forklift)
 
 ## Version history
 
