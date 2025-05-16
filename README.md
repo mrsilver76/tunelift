@@ -1,8 +1,8 @@
 # TuneLift
 _A Windows command line tool to export iTunes audio playlists as standard or extended .m3u files. It can also adjust file paths for compatibility with other computers, operating systems (like Linux), NAS devices, and embedded systems._
 
-> [!TIP]
-> Want to use your playlists with Plex? [Plex Playlist Uploader](https://github.com/mrsilver76/plex-playlist-uploader) makes it easy to upload your exported `.m3u` files, the perfect companion to TuneLift.
+>[!TIP]
+>Using Plex for music? [Plex Playlist Uploader](https://github.com/mrsilver76/plex-playlist-uploader) makes it easy to upload your exported `.m3u` files to Plex Media Server.
 
 ## 🧰 Features
 * 🔗 Connects directly to iTunes via the exposed COM interface, rather than parsing XML files.
