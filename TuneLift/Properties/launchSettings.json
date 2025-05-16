@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "TuneLift": {
-      "commandName": "Project",
-      "commandLineArgs": "-d z:\\temp\\playlists215 -ns"
-    }
-  }
-}
