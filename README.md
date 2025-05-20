@@ -217,7 +217,7 @@ Please raise an issue at https://github.com/mrsilver76/tunelift/issues.
 
 ### 0.9.0 (12 May 2025)
 - Initial release, a C# port from [iTunes Playlist Exporter](https://github.com/mrsilver76/itunes_playlist_exporter/).
-- Removed Plex uploading functionality, now handled by a separate tool called [Plex Playlist Uploader](https://github.com/mrsilver76/plex-playlist-uploader/).
+- Removed Plex importing functionality, now handled by a separate tool called [ListPorter](https://github.com/mrsilver76/listporter/).
 - Moved all options to command line, no editing of code required.
 - Added automatic version checking with update notifications.
 - Logger now writes output to a log file instead of just the console.
