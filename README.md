@@ -216,7 +216,7 @@ Please raise an issue at https://github.com/mrsilver76/tunelift/issues.
 - Fixed a version check bug caused by a mismatch between .NET assembly versioning (`major.minor.build.revision`) and GitHub's semantic versioning (`major.minor.revision`)
 
 ### 0.9.0 (12 May 2025)
-- Initial release, a C# port from "iTunes Playlist Exporter".
+- Initial release, a C# port from [iTunes Playlist Exporter](https://github.com/mrsilver76/itunes_playlist_exporter/).
 - Removed Plex uploading functionality, now handled by a separate tool called [Plex Playlist Uploader](https://github.com/mrsilver76/plex-playlist-uploader/).
 - Moved all options to command line, no editing of code required.
 - Added automatic version checking with update notifications.
