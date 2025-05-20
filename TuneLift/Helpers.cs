@@ -35,7 +35,7 @@ namespace TuneLift
                     ignorePrefix = args[i + 1];
                     i++;
                 }
-                else if (lowerArg == "-l" || lowerArg == "--linux" || lowerArg == "/l")
+                else if (lowerArg == "-u" || lowerArg == "--unix" || lowerArg == "/u")
                 {
                     useLinuxPaths = true;
                 }
@@ -80,13 +80,11 @@ namespace TuneLift
 
         public static void DisplayUsage(string errorMessage = "")
         {
-            Version version = Assembly.GetExecutingAssembly().GetName().Version!;
-
             Console.WriteLine($"Usage: {System.Diagnostics.Process.GetCurrentProcess().ProcessName} [options] <destination folder>\n" +
                                 "Export iTunes audio playlists as standard or extended .m3u files.\n");
 
             if (String.IsNullOrEmpty(errorMessage))
-                Console.WriteLine( $"This is version v{version.Major}.{version.Minor}.{version.Revision}, copyright © 2020-{DateTime.Now.Year} Richard Lawrence.\n" +
+                Console.WriteLine( $"This is version v{localVersion.Major}.{localVersion.Minor}.{localVersion.Revision}, copyright © 2020-{DateTime.Now.Year} Richard Lawrence.\n" +
                                     "Forklift icon by nawicon - Flaticon (https://www.flaticon.com/free-icons/forklift)\n");
 
             Console.WriteLine(  "Playlist Selection:\n" +
@@ -97,7 +95,7 @@ namespace TuneLift
                                 "Output Format:\n" +
                                 "  -8, --append-8                 Use .m3u8 file extension.\n" +
                                 "  -ne, --not-extended            Export using basic .m3u format, with no extended info.\n" +
-                                "  -l, --linux                    Use Linux-style paths and LF line endings.\n" +
+                                "  -u, --unix                     Use Unix-style paths and LF line endings.\n" +
                                 "\n" +
                                 "File Path Adjustments:\n" +
                                 "  -f <text>, --find <text>       Match <text> in file path for substitution.\n" +
@@ -198,22 +196,26 @@ namespace TuneLift
                 var latest = TryFetchLatestVersion(gitHubRepo);
                 if (latest != null)
                 {
-                    ini["Version"]["LatestReleaseVersion"] = latest.Value.Version;
                     ini["Version"]["LatestReleaseChecked"] = latest.Value.Timestamp;
-                    parser.WriteFile(iniPath, ini);
-                    cachedVersion = Version.Parse(latest.Value.Version);
+
+                    if (!string.IsNullOrEmpty(latest.Value.Version))
+                    {
+                        ini["Version"]["LatestReleaseVersion"] = latest.Value.Version;
+                        cachedVersion = Version.Parse(latest.Value.Version);
+                    }
+
+                    parser.WriteFile(iniPath, ini); // Always write if we got any response at all
                 }
             }
 
-            var localVersion = Assembly.GetExecutingAssembly().GetName().Version!;
-            if (cachedVersion != null && cachedVersion > localVersion)
+            if (IsGitHubLaterRelease(cachedVersion))
             {
                 Console.WriteLine();
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write($"   A new version ({cachedVersion}) is available!");
+                Console.Write(      $"  ℹ️ A new version ({cachedVersion}) is available!");
                 Console.ResetColor();
                 Console.WriteLine($" You are using {localVersion.Major}.{localVersion.Minor}.{localVersion.Revision}");
-                Console.WriteLine($"    Get it from https://www.github.com/{gitHubRepo}/");
+                Console.WriteLine(  $"     Get it from https://www.github.com/{gitHubRepo}/");
             }
         }
 
@@ -230,60 +232,77 @@ namespace TuneLift
             string dateStr = ini["Version"]["LatestReleaseChecked"];
             string versionStr = ini["Version"]["LatestReleaseVersion"];
 
-            bool parseSuccess = DateTime.TryParse(dateStr, out DateTime lastChecked);
-            bool isExpired = !parseSuccess || (DateTime.UtcNow - lastChecked.ToUniversalTime()).TotalDays >= 7;
-            bool hasVersion = Version.TryParse(versionStr ?? "", out Version? parsed);
+            bool hasTimestamp = DateTime.TryParse(dateStr, out DateTime lastChecked);
+            bool isExpired = !hasTimestamp || (DateTime.UtcNow - lastChecked.ToUniversalTime()).TotalDays >= 7;
 
-            if (hasVersion)
+            if (Version.TryParse(versionStr ?? "", out Version? parsed))
                 cachedVersion = parsed;
 
-            return isExpired || !hasVersion;
+            return isExpired;
         }
 
         /// <summary>
         /// Fetches the latest version from the GitHub repo by looking at the releases/latest page.
         /// </summary>
-        /// <param name="repo"></param>
-        /// <returns></returns>
-        private static (string Version, string Timestamp)? TryFetchLatestVersion(string repo)
+        /// <param name="repo">The name of the repo</param>
+        /// <returns>Version and today's date and time</returns>
+        private static (string? Version, string Timestamp)? TryFetchLatestVersion(string repo)
         {
             string url = $"https://api.github.com/repos/{repo}/releases/latest";
             using var client = new HttpClient();
 
-            Version? localVersion = Assembly.GetExecutingAssembly().GetName().Version!;
             string ua = repo.Replace('/', '.') + "/" + localVersion;
             client.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
 
             try
             {
-                string json = client.GetStringAsync(url).GetAwaiter().GetResult();
+                var response = client.GetAsync(url).GetAwaiter().GetResult();
+                string timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Received response, but it's a client or server error (e.g., 404, 500)
+                    return (null, timestamp);  // Still update "last checked"
+                }
+
+                string json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                 var match = Regex.Match(json, "\"tag_name\"\\s*:\\s*\"([^\"]+)\"");
-                if (!match.Success) return null;
+                if (!match.Success)
+                {
+                    return (null, timestamp);  // Response body not as expected
+                }
 
                 string version = match.Groups[1].Value.TrimStart('v', 'V');
-                return (version, DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+                return (version, timestamp);
             }
             catch
             {
+                // This means we truly couldn't reach GitHub at all
                 return null;
             }
         }
 
         /// <summary>
-        /// Checks if the console supports Unicode characters.
+        /// Checks if the GitHub version is later than the local version. Takes into account that
+        /// GitHub uses major.minor.revision and local uses major.minor.build.revision.
         /// </summary>
-        /// <returns>True if the console does</returns>
-        static bool ConsoleSupportsUnicode()
+        /// <param name="gitHubVersion"></param>
+        /// <returns></returns>
+        public static bool IsGitHubLaterRelease(Version? gitHubVersion)
         {
-            try
-            {
-                Console.OutputEncoding = System.Text.Encoding.UTF8;
-                return Console.OutputEncoding.WebName == "utf-8";
-            }
-            catch
-            {
+            // If the GitHub version is null, we can't compare
+            if (gitHubVersion == null)
                 return false;
-            }
+
+            // GitHub: major.minor.revision needs to be mapped to major.minor.0.revision
+            Version normalizedGitHubVersion = new Version(
+                gitHubVersion.Major,
+                gitHubVersion.Minor,
+                0, // GitHub doesn't use a build component
+                gitHubVersion.Build
+            );
+
+            return normalizedGitHubVersion > localVersion;
         }
     }
 }

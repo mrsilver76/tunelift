@@ -40,14 +40,17 @@ namespace TuneLift
         public static bool notExtended = false;
         public static bool deleteExisting = false;
         public static string appDataPath = "";
+
+        // Internal global variables
+        public static Version localVersion = Assembly.GetExecutingAssembly().GetName().Version!;
+
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            Version version = Assembly.GetExecutingAssembly().GetName().Version!;
 
             ParseCommandLineArguments(args);
 
-            Console.WriteLine($"TuneLift v{version.Major}.{version.Minor}.{version.Revision}, Copyright © 2020-{DateTime.Now.Year} Richard Lawrence");
+            Console.WriteLine($"TuneLift v{localVersion.Major}.{localVersion.Minor}.{localVersion.Revision}, Copyright © 2020-{DateTime.Now.Year} Richard Lawrence");
             Console.WriteLine("Export iTunes audio playlists as standard or extended .m3u files.");
             Console.WriteLine($"https://github.com/mrsilver76/tunelift\n");
             Console.WriteLine($"This program comes with ABSOLUTELY NO WARRANTY. This is free software,");
@@ -145,12 +148,17 @@ namespace TuneLift
             {
                 if (playlist == null) continue; // Skip null playlists
 
+
+
                 // Check if this is a playlist we want to export
                 if (IsWantedPlaylist(playlist, false))
                 {
                     string playlistTitle = (string)playlist.Name;
                     playlistCount++;
                     Logger($"Exporting {playlistCount}/{wantedPlaylists}: {playlistTitle} ({(int)playlist.Tracks.Count} tracks)");
+
+                    // Flag to indicate if there is content in this playlist to save
+                    bool contentToSave = false;
 
                     // Sanitize playlist name for a valid filename
                     string sanitizedTitle = string.Join("_", playlistTitle.Split(Path.GetInvalidFileNameChars()));
@@ -172,8 +180,9 @@ namespace TuneLift
                             if (location != null)
                             {
                                 string fileExtension = Path.GetExtension(location)?.ToLower() ?? string.Empty;
-                                if (fileExtension == ".mp3" || fileExtension == ".m4a")
+                                if (fileExtension == ".mp3" || fileExtension == ".m4a" || fileExtension == ".m4b")
                                 {
+                                    contentToSave = true; // We have something to save
                                     // Write track information
                                     if (notExtended)
                                         playlistContents += RewriteLocation(location) + lineEnding;
@@ -189,7 +198,10 @@ namespace TuneLift
                     }
 
                     // Write out the playlist
-                    File.WriteAllText(filePath, playlistContents, System.Text.Encoding.UTF8);
+                    if (contentToSave)
+                        File.WriteAllText(filePath, playlistContents, System.Text.Encoding.UTF8);
+                    else
+                        Logger($"No audio content to save for playlist: {playlistTitle}");
                 }
             }
 
