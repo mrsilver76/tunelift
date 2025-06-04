@@ -93,7 +93,7 @@ If `<destination folder>` doesn't exist then it will be created.
   Converts Windows-style paths (backslashes) to Unix-style (forward slashes) and uses LF line endings. This is useful when exporting playlist files that will be used on Unix based machines - such as NASes, media servers or embedded systems.
 
 > [!TIP]
-> If you plan to use `--unix` then you may need to manipulate the path so that it correctly points to the songs. See [Path rewriting](#-path-rewriting).
+> If you plan to use `--unix` then you may need to manipulate the path so that it correctly points to the songs. See [Path rewriting](#path-rewriting).
 
 ### Path rewriting
 
