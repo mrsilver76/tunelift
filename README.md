@@ -11,6 +11,7 @@ _A Windows command line tool to export iTunes audio playlists as standard or ext
 * 🚫 Exclude exporting any playlist whose name starts with specified text.
 * 🐧 Convert paths (forward slashes and LF endings) for Linux.
 * 🔁 Rewrite paths to make exported playlists portable.
+* 📁 Remove a common base path from file entries to make playlists relative.
 * 🧹 Delete existing exports before saving new ones.
 
 ## 📦 Download
@@ -106,6 +107,17 @@ If the playlist will be used by other users, machines, or software, the original
 
 - **`/r <text>`, `-r <text>`, `--replace <text>`**  
   Replaces matched text from `--find` with this new value. If `--find` is used and there is no `--replace` value, then it will be assumed to be blank and the matching string will be removed.
+
+- **`/b <path>`, `-b <path>`, `--base-path <path>`**   
+  Removes the specified base path from the beginning of each file path in the exported playlist. This is useful when you want the playlist entries to be relative to a certain directory. The comparison is case-insensitive.
+
+  If your music files are located at `C:\Music\Library\Artist\Song.mp3` and you set `--base-path C:\Music\Library\`, the resulting path in the playlist will be `Artist\Song.mp3`.
+
+> [!NOTE]
+> The base path is removed before any other rewriting actions (such as `--find`, `--replace`, or `--unix`) are applied.
+
+> [!IMPORTANT]
+> To avoid leaving a leading slash or backslash in the result, make sure your `--base-path` ends with the appropriate path separator (`\` for Windows-style paths or `/` for Linux-style paths).
 
 ### File Management
 
