@@ -207,13 +207,22 @@ Please raise an issue at https://github.com/mrsilver76/tunelift/issues.
 
 ## Version history
 
+### 1.0.0 (tbc)
+- 🏁 Declared as the first stable release.
+- Cleaned up version number handling, ensuring consistency and correct handling of pre-releases.
+- Added `--base-path` option to remove leading paths in playlists to make them relative.
+- Added `-l`, `--linux` and `/l` as an alias for `--unix`
+- Cleaned up various pieces of code.
+- Improved `Publish.ps1` build script for final executables.
+
 ### 0.9.1 (21 May 2025)
 - Changed `/l`, `-l` and `--linux` to `/u`, `-u` and `--unix` to align with [ListPorter](https://github.com/mrsilver76/listporter) command-line conventions.
 - Fixed an issue in the version checker that could cause excessive requests to GitHub under certain conditions.
+- Fixed an issue in the version checker caused by a mismatch between .NET assembly versioning and GitHub's semantic versioning.
 - Fixed a bug that prevented audiobooks from being included in playlists.
 - Fixed a bug where playlists with no audio content were still being written to disk.
 - Greatly improved documentation for better clarity and usability.
-- Fixed a version check bug caused by a mismatch between .NET assembly versioning (`major.minor.build.revision`) and GitHub's semantic versioning (`major.minor.revision`)
+
 
 ### 0.9.0 (12 May 2025)
 - Initial release, a C# port from [iTunes Playlist Exporter](https://github.com/mrsilver76/itunes_playlist_exporter/).

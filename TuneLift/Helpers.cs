@@ -1,11 +1,26 @@
-﻿using Microsoft.Win32;
-using System.Reflection;
+﻿/*
+ * TuneLift - Export iTunes audio playlists as standard or extended .m3u files.
+ * Copyright (C) 2020-2025 Richard Lawrence
+ * 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see
+ * <https://www.gnu.org/licenses/>.
+ */
+
 using System.Text.RegularExpressions;
-using static System.Collections.Specialized.BitVector32;
 using IniParser;
 using IniParser.Model;
 using static TuneLift.Program;
-using System;
 
 namespace TuneLift
 {
@@ -35,9 +50,9 @@ namespace TuneLift
                     ignorePrefix = args[i + 1];
                     i++;
                 }
-                else if (lowerArg == "-u" || lowerArg == "--unix" || lowerArg == "/u")
+                else if (lowerArg == "-u" || lowerArg == "--unix" || lowerArg == "/u" || lowerArg == "-l" || lowerArg == "--linux" || lowerArg == "/l")  // Includes Linux as an alias for Unix
                 {
-                    useLinuxPaths = true;
+                    useUnixPaths = true;
                 }
                 else if (lowerArg == "-f" || lowerArg == "--find" || lowerArg == "/f" && i + 1 < args.Length)
                 {
@@ -55,6 +70,11 @@ namespace TuneLift
                     notExtended = true;
                 else if (lowerArg == "-d" || lowerArg == "--delete" || lowerArg == "/d")
                     deleteExisting = true;
+                else if (lowerArg == "-b" || lowerArg == "--base-path" || lowerArg == "/b" && i + 1 < args.Length)
+                {
+                    basePath = args[i + 1];
+                    i++;
+                }
                 else if (lowerArg.StartsWith("-") || lowerArg.StartsWith("--") || lowerArg.StartsWith("/"))
                     DisplayUsage($"Unrecognised argument: {args[i]}");
                 else // probably the folder
@@ -78,38 +98,49 @@ namespace TuneLift
                 DisplayUsage("Missing destination folder.");
         }
 
+        /// <summary>
+        /// Displays the usage information for the application, including command line options and version information. If an error message
+        /// is provided, it will be displayed and the program will exit with an error status.
+        /// </summary>
+        /// <param name="errorMessage">Error message</param>
         public static void DisplayUsage(string errorMessage = "")
         {
             Console.WriteLine($"Usage: {System.Diagnostics.Process.GetCurrentProcess().ProcessName} [options] <destination folder>\n" +
                                 "Export iTunes audio playlists as standard or extended .m3u files.\n");
 
             if (String.IsNullOrEmpty(errorMessage))
-                Console.WriteLine( $"This is version v{localVersion.Major}.{localVersion.Minor}.{localVersion.Revision}, copyright © 2020-{DateTime.Now.Year} Richard Lawrence.\n" +
+                Console.WriteLine( $"This is version {OutputVersion(version)}, copyright © 2020-{DateTime.Now.Year} Richard Lawrence.\n" +
                                     "Forklift icon by nawicon - Flaticon (https://www.flaticon.com/free-icons/forklift)\n");
 
-            Console.WriteLine(  "Playlist Selection:\n" +
+            Console.WriteLine(  "Mandatory Arguments:\n" +
+                                "  <destination folder>           The folder to export the playlists to.\n" +
+                                "\n" +
+                                "Playlist Selection:\n" +
                                 "  -ns, --no-smart                Skip exporting smart playlists.\n" +
                                 "  -np, --no-playlist             Skip exporting regular (non-smart) playlists.\n" +
-                                "  -i <text>, --ignore <text>     Exclude playlists with names starting with <text>.\n" +
+                                "  -i <text>, --ignore <text>     Exclude playlists with names starting <text>.\n" +
                                 "\n" +
                                 "Output Format:\n" +
                                 "  -8, --append-8                 Use .m3u8 file extension.\n" +
-                                "  -ne, --not-extended            Export using basic .m3u format, with no extended info.\n" +
+                                "  -ne, --not-extended            Export using basic .m3u format, with no extended\n" +
+                                "                                 playlist/song titles and duration information.\n" +
                                 "  -u, --unix                     Use Unix-style paths and LF line endings.\n" +
                                 "\n" +
                                 "File Path Adjustments:\n" +
                                 "  -f <text>, --find <text>       Match <text> in file path for substitution.\n" +
                                 "  -r <text>, --replace <text>    Replace matched text with <text>.\n" +
+                                "  -b <path>, --base-path <path>  Remove leading <path> from file path.\n" +
                                 "\n" +
                                 "File Management:\n" +
-                                "  -d, --delete                   Remove existing playlist files from the destination.\n" +
+                                "  -d, --delete                   Remove existing playlist files from destination.\n" +
                                 "\n" +
                                 "Help:\n" +
-                                "  -h, --help                     Show this help message.\n");
+                                "  /?, -h, --help                 Show this help message.");
 
             
             if (!string.IsNullOrEmpty(errorMessage))
-            { 
+            {
+                Console.WriteLine();
                 Console.WriteLine($"Error: {errorMessage}");
                 Environment.Exit(-1);
             }
@@ -117,23 +148,15 @@ namespace TuneLift
         }
 
         /// <summary>
-        /// Given a number, returns the number and either the singular or plural
-        /// version of that description
+        /// Pluralises a string based on the number provided.
         /// </summary>
-        /// <param name="num">Number</param>
-        /// <param name="single">Word if singular</param>
-        /// <param name="plural">Word if plural</param>
+        /// <param name="number"></param>
+        /// <param name="singular"></param>
+        /// <param name="plural"></param>
         /// <returns></returns>
-        public static string Pluralise(int num, string single, string plural)
+        public static string Pluralise(int number, string singular, string plural)
         {
-            string ret = num.ToString() + " ";
-
-            if (num == 1)
-                ret += single;
-            else
-                ret += plural;
-
-            return (ret);
+            return number == 1 ? $"{number} {singular}" : $"{number:N0} {plural}";
         }
 
         /// <summary>
@@ -208,15 +231,47 @@ namespace TuneLift
                 }
             }
 
-            if (IsGitHubLaterRelease(cachedVersion))
+            if (cachedVersion != null && cachedVersion > version)
             {
                 Console.WriteLine();
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write(      $"  ℹ️ A new version ({cachedVersion}) is available!");
+                Console.Write(      $"  ℹ️ A new version ({OutputVersion(cachedVersion)}) is available!");
                 Console.ResetColor();
-                Console.WriteLine($" You are using {localVersion.Major}.{localVersion.Minor}.{localVersion.Revision}");
+                Console.WriteLine($" You are using {OutputVersion(version)}");
                 Console.WriteLine(  $"     Get it from https://www.github.com/{gitHubRepo}/");
             }
+        }
+
+        /// <summary>
+        /// Takes a semantic version string in the format "major.minor.revision" and returns a Version object in
+        /// the format "major.minor.0.revision"
+        /// </summary>
+        /// <param name="versionString"></param>
+        /// <returns></returns>
+        public static Version? ParseSemanticVersion(string versionString)
+        {
+            if (string.IsNullOrWhiteSpace(versionString))
+                return null;
+
+            var parts = versionString.Split('.');
+            if (parts.Length != 3)
+                return null;
+
+            if (int.TryParse(parts[0], out int major) &&
+                int.TryParse(parts[1], out int minor) &&
+                int.TryParse(parts[2], out int revision))
+            {
+                try
+                {
+                    return new Version(major, minor, 0, revision);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -235,8 +290,7 @@ namespace TuneLift
             bool hasTimestamp = DateTime.TryParse(dateStr, out DateTime lastChecked);
             bool isExpired = !hasTimestamp || (DateTime.UtcNow - lastChecked.ToUniversalTime()).TotalDays >= 7;
 
-            if (Version.TryParse(versionStr ?? "", out Version? parsed))
-                cachedVersion = parsed;
+            cachedVersion = ParseSemanticVersion(versionStr);
 
             return isExpired;
         }
@@ -251,7 +305,7 @@ namespace TuneLift
             string url = $"https://api.github.com/repos/{repo}/releases/latest";
             using var client = new HttpClient();
 
-            string ua = repo.Replace('/', '.') + "/" + localVersion;
+            string ua = repo.Replace('/', '.') + "/" + OutputVersion(version);
             client.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
 
             try
@@ -283,26 +337,30 @@ namespace TuneLift
         }
 
         /// <summary>
-        /// Checks if the GitHub version is later than the local version. Takes into account that
-        /// GitHub uses major.minor.revision and local uses major.minor.build.revision.
+        /// Given a .NET Version object, outputs the version in a semantic version format.
+        /// If the build number is greater than 0, it appends `-preX` to the version string.
         /// </summary>
-        /// <param name="gitHubVersion"></param>
         /// <returns></returns>
-        public static bool IsGitHubLaterRelease(Version? gitHubVersion)
+        public static string OutputVersion(Version? netVersion)
         {
-            // If the GitHub version is null, we can't compare
-            if (gitHubVersion == null)
-                return false;
+            if (netVersion == null)
+                return "0.0.0";
 
-            // GitHub: major.minor.revision needs to be mapped to major.minor.0.revision
-            Version normalizedGitHubVersion = new Version(
-                gitHubVersion.Major,
-                gitHubVersion.Minor,
-                0, // GitHub doesn't use a build component
-                gitHubVersion.Build
-            );
+            // Use major.minor.revision from version, defaulting patch to 0 if missing
+            int major = netVersion.Major;
+            int minor = netVersion.Minor;
+            int revision = netVersion.Revision >= 0 ? netVersion.Revision : 0;
 
-            return normalizedGitHubVersion > localVersion;
+            // Build the base semantic version string
+            string result = $"{major}.{minor}.{revision}";
+
+            // Append `-preX` if build is greater than 0
+            if (netVersion.Build > 0)
+            {
+                result += $"-pre{netVersion.Build}";
+            }
+
+            return result;
         }
     }
 }
