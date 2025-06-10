@@ -212,6 +212,10 @@ This will correctly transform the path to `/mnt/media/Pop/track.mp3`
 
 Please raise an issue at https://github.com/mrsilver76/tunelift/issues.
 
+## 💡 Future development: open but unplanned
+
+TuneLift currently meets the needs it was designed for, and no major new features are planned at this time. However, the project remains open to community suggestions and improvements. If you have ideas or see ways to enhance the tool, please feel free to submit a [feature request](https://github.com/mrsilver76/tunelift/issues).
+
 ## 📝 Attribution
 
 - Apple, iTunes, and macOS are trademarks of Apple Inc., registered in the U.S. and other countries. This tool is not affiliated with or endorsed by Apple Inc.
