@@ -44,6 +44,7 @@ namespace TuneLift
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
+            InitialiseLogger();
             ParseCommandLineArguments(args);
 
             Console.WriteLine($"TuneLift v{OutputVersion(version)}, Copyright © 2020-{DateTime.Now.Year} Richard Lawrence");
@@ -54,7 +55,7 @@ namespace TuneLift
             Console.WriteLine($"the documentation for details.");
             Console.WriteLine();
 
-            InitialiseLogger();
+
             Logger("Starting TuneLift...");
 
             if (Directory.Exists(exportFolder))

@@ -135,9 +135,10 @@ namespace TuneLift
                                 "  -d, --delete                   Remove existing playlist files from destination.\n" +
                                 "\n" +
                                 "Help:\n" +
-                                "  /?, -h, --help                 Show this help message.");
+                                "  /?, -h, --help                 Show this help message.\n" +
+                                "\n" +
+                               $"Logs are written to {Path.Combine(appDataPath, "Logs")}");
 
-            
             if (!string.IsNullOrEmpty(errorMessage))
             {
                 Console.WriteLine();
@@ -356,9 +357,7 @@ namespace TuneLift
 
             // Append `-preX` if build is greater than 0
             if (netVersion.Build > 0)
-            {
                 result += $"-pre{netVersion.Build}";
-            }
 
             return result;
         }
