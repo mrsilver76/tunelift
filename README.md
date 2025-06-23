@@ -11,6 +11,7 @@ _A Windows command line tool to export iTunes audio playlists as standard or ext
 * 🚫 Exclude exporting any playlist whose name starts with specified text.
 * 🐧 Convert paths (forward slashes and LF endings) for Linux.
 * 🔁 Rewrite paths to make exported playlists portable.
+* 📁 Remove a common base path from file entries to make playlists relative.
 * 🧹 Delete existing exports before saving new ones.
 
 ## 📦 Download
@@ -26,7 +27,7 @@ This program has been tested extensively on Windows 11, but should also work on 
 Below are a couple of command scenarios for using TuneLift:
 
 ```
-TuneLift.exe -d "c:\temp\playlists"
+TuneLift.exe /d "c:\temp\playlists"
 
 TuneLift.exe --delete "c:\temp\playlists"
 ```
@@ -46,15 +47,15 @@ TuneLift.exe "C:\Users\MrSilver\Documents\Playlists" --not-extended --ignore "ru
 ```
 TuneLift.exe \\raspberry\pi\playlists -d -l -f "C:/Users/MrSilver/Music/iTunes/iTunes Media/Music" -r "/home/pi/music"
 
-TuneLift.exe \\raspberry\pi\playlists --delete --linux --find "C:/Users/MrSilver/Music/iTunes/iTunes Media/Music" --replace "/home/pi/music"
+TuneLift.exe \\raspberry\pi\playlists --delete --unix --find "C:/Users/MrSilver/Music/iTunes/iTunes Media/Music" --replace "/home/pi/music"
 ```
 * Export all playlists from iTunes and save them into the shared network folder `\\raspberry\pi\playlists`.
 * Delete any playlists already in the folder before starting.
-* Write the playlist files with Linux paths and file endings.
+* Write the playlist files with Unix paths and file endings.
 * Replace `C:\Users\MrSilver\Music\iTunes\iTunes Media\Music` with `/home/pi/music`.
 
 > [!IMPORTANT]
-> When using `--linux`, path slashes are converted before any `--find` and `--replace` operations. Make sure your `--find` string reflects the adjusted slash style. In the example above, backslashes are converted to `/`, so `--find` must also use forward slashes (`/`.
+> When using `--unix`, path slashes are converted before any `--find` and `--replace` operations. Make sure your `--find` string reflects the adjusted slash style. In the example above, backslashes are converted to `/`, so `--find` must also use forward slashes (`/`.
 
 ## 💻 Command line options
 
@@ -68,54 +69,65 @@ If `<destination folder>` doesn't exist then it will be created.
 
 ### Playlist selection
 
-- **`-ns`, `--no-smart`**  
+- **`/ns`, `-ns`, `--no-smart`**  
   Skips smart (dynamic rule-based) playlists and exports only regular (manual) ones.
 
-- **`-np`, `--no-playlist`**  
+- **`/np`, `-np`, `--no-playlist`**  
   Skips regular (manual) playlists and only exports smart (dynamic rule-based) playlists.
 
-- **`-i <text>`, `--ignore <text>`**  
+- **`/i <text>`, `-i <text>`, `--ignore <text>`**  
   Excludes playlists whose names start with `<text>`. This is case-insensitive, so `--ignore temp` will ignore playlists with titles such as "TEMPMIX" and "Temp - Chill".
 
 ### Output format
 
-- **`-8`, `--append-8`**  
+- **`/8`, `-8`, `--append-8`**  
   Exports playlists with the `.m3u8` extension instead of `.m3u`.
 
 > [!NOTE]
 > **Playlist files are always encoded in UTF-8.** This ensures broad compatibility with file paths and file names that contain non-ASCII characters (eg. accented letters, umlauts or non-Latin symbols). The `--append-8` flag simply changes the extension to `.m3u8`.
 
-- **`-ne`, `--not-extended`**  
+- **`/ne`, `-ne`, `--not-extended`**  
   Outputs basic `.m3u` files without extended metadata (track duration or title). This is useful when trying to use the playlists with simpler or legacy media players.
 
-- **`-l`, `--linux`**  
-  Converts Windows-style paths (backslashes) to Linux-style (forward slashes) and uses LF line endings. This is useful when exporting playlist files that will be used on Linux based machines - such as NASes, media servers or embedded systems.
+- **`/u`, `-u`, `--unix`**  
+  Converts Windows-style paths (backslashes) to Unix-style (forward slashes) and uses LF line endings. This is useful when exporting playlist files that will be used on Unix based machines - such as NASes, media servers or embedded systems.
 
 > [!TIP]
-> If you plan to use `--linux` then you may need to manipulate the path so that it correctly points to the songs. See [Path rewriting](#-path-rewriting).
+> If you plan to use `--unix` then you may need to manipulate the path so that it correctly points to the songs. See [Path rewriting](#path-rewriting).
 
 ### Path rewriting
 
 If the playlist will be used by other users, machines, or software, the original file paths may not work for them. For example, a path like `D:\MyMusic` might not be accessible from a NAS or another computer. Even if the files are shared, the other system may require a different path, such as `\\mycomputer\MyMusic`. To address this, you can use the options below to rewrite paths so they match the environment where the playlist will be used:
 
-- **`-f <text>`, `--find <text>`**  
+- **`/f <text>`,`-f <text>`, `--find <text>`**  
   Searches for a specific substring in each file path. This is intended for use with `--replace` to modify paths for different devices or OSes. Searches are case-insensitive and you can only find one substring.
 
 > [!IMPORTANT]
-> When also using `--linux`, backslashes in the path will be replaced with forward slashes **before the search and replace is performed**. As a result, searches containing `\` will always fail unless they are manually replaced with `/`.
+> When also using `--unix`, backslashes in the path will be replaced with forward slashes **before the search and replace is performed**. As a result, searches containing `\` will always fail unless they are manually replaced with `/`.
 
-- **`-r <text>`, `--replace <text>`**  
+- **`/r <text>`, `-r <text>`, `--replace <text>`**  
   Replaces matched text from `--find` with this new value. If `--find` is used and there is no `--replace` value, then it will be assumed to be blank and the matching string will be removed.
+
+- **`/b <path>`, `-b <path>`, `--base-path <path>`**   
+  Removes the specified base path from the beginning of each file path in the exported playlist. This is useful when you want the playlist entries to be relative to a certain directory. The comparison is case-insensitive.
+
+  If your music files are located at `C:\Music\Library\Artist\Song.mp3` and you set `--base-path C:\Music\Library\`, the resulting path in the playlist will be `Artist\Song.mp3`.
+
+> [!NOTE]
+> The base path is removed before any other rewriting actions (such as `--find`, `--replace`, or `--unix`) are applied.
+
+> [!IMPORTANT]
+> To avoid leaving a leading slash or backslash in the result, make sure your `--base-path` ends with the appropriate path separator (`\` for Windows-style paths or `/` for Linux-style paths).
 
 ### File Management
 
-- **`-d`, `--delete`**  
+- **`/d`, `-d`, `--delete`**  
   Deletes playlist files already in the destination folder before exporting new ones.
 
 ### Help
 
 - **`/?`, `-h`, `--help`**  
-  Displays the full help text with all available options.
+  Displays the full help text with all available options, credits and the location of the log files.
 
 ## ❓ Common questions
 
@@ -170,8 +182,8 @@ Modern operating systems support filenames with a wide range of characters, incl
 
 TuneLift uses UTF-8 encoding to ensure all filenames, regardless of language or special symbols, are preserved correctly. 
 
-### I'm using `--linux`, why isn't `--find` matching?
-The `--linux` options change all slashes in the song paths before the `--find` and `--replace` logic runs. This means that if your `--find` string uses backslashes then it won’t match the transformed path.
+### I'm using `--unix`, why isn't `--find` matching?
+The `--unix` options change all slashes in the song paths before the `--find` and `--replace` logic runs. This means that if your `--find` string uses backslashes then it won’t match the transformed path.
 
 As an example, lets assume your music track is stored in iTunes at:
 ```
@@ -180,9 +192,9 @@ D:\Music\Pop\track.mp3
 
 If you run the tool with:
 ```
---linux --find "D:\Music" --replace "/mnt/media"
+--unix --find "D:\Music" --replace "/mnt/media"
 ```
-then after `--linux` is actioned, the revised path is now:
+then after `--unix` is actioned, the revised path is now:
 ```
 D:/Music/Pop/track.mp3
 ```
@@ -191,7 +203,7 @@ Since the `--find` string `"D:\Music"` doesn't match `"D:/Music"` there will be 
 ✅ **Correct Usage**   
 Use forward slashes in the `--find` string to match the slash transformation:
 ```
---linux --find "D:/Music" --replace "/mnt/media"
+--unix --find "D:/Music" --replace "/mnt/media"
 ```
 
 This will correctly transform the path to `/mnt/media/Pop/track.mp3`
@@ -200,6 +212,10 @@ This will correctly transform the path to `/mnt/media/Pop/track.mp3`
 
 Please raise an issue at https://github.com/mrsilver76/tunelift/issues.
 
+## 💡 Future development: open but unplanned
+
+TuneLift currently meets the needs it was designed for, and no major new features are planned at this time. However, the project remains open to community suggestions and improvements. If you have ideas or see ways to enhance the tool, please feel free to submit a [feature request](https://github.com/mrsilver76/tunelift/issues).
+
 ## 📝 Attribution
 
 - Apple, iTunes, and macOS are trademarks of Apple Inc., registered in the U.S. and other countries. This tool is not affiliated with or endorsed by Apple Inc.
@@ -207,9 +223,26 @@ Please raise an issue at https://github.com/mrsilver76/tunelift/issues.
 
 ## Version history
 
+### 1.0.0 (23 June 2025)
+- 🏁 Declared as the first stable release.
+- Cleaned up version number handling, ensuring consistency and correct handling of pre-releases.
+- Added `--base-path` option to remove leading paths in playlists to make them relative.
+- Added `-l`, `--linux` and `/l` as an alias for `--unix`
+- Cleaned up various pieces of code.
+- Improved `Publish.ps1` build script for final executable.
+
+### 0.9.1 (21 May 2025)
+- Changed `/l`, `-l` and `--linux` to `/u`, `-u` and `--unix` to align with [ListPorter](https://github.com/mrsilver76/listporter) command-line conventions.
+- Fixed an issue in the version checker that could cause excessive requests to GitHub under certain conditions.
+- Fixed an issue in the version checker caused by a mismatch between .NET assembly versioning and GitHub's semantic versioning.
+- Fixed a bug that prevented audiobooks from being included in playlists.
+- Fixed a bug where playlists with no audio content were still being written to disk.
+- Greatly improved documentation for better clarity and usability.
+
+
 ### 0.9.0 (12 May 2025)
-- Initial release, a C# port from "iTunes Playlist Exporter".
-- Removed Plex uploading functionality, now handled by a separate tool called [Plex Playlist Uploader](https://github.com/mrsilver76/plex-playlist-uploader/).
+- Initial release, a C# port from [iTunes Playlist Exporter](https://github.com/mrsilver76/itunes_playlist_exporter/).
+- Removed Plex importing functionality, now handled by a separate tool called [ListPorter](https://github.com/mrsilver76/listporter/).
 - Moved all options to command line, no editing of code required.
 - Added automatic version checking with update notifications.
 - Logger now writes output to a log file instead of just the console.

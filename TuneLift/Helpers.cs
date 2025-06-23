@@ -1,11 +1,26 @@
-﻿using Microsoft.Win32;
-using System.Reflection;
+﻿/*
+ * TuneLift - Export iTunes audio playlists as standard or extended .m3u files.
+ * Copyright (C) 2020-2025 Richard Lawrence
+ * 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see
+ * <https://www.gnu.org/licenses/>.
+ */
+
 using System.Text.RegularExpressions;
-using static System.Collections.Specialized.BitVector32;
 using IniParser;
 using IniParser.Model;
 using static TuneLift.Program;
-using System;
 
 namespace TuneLift
 {
@@ -35,9 +50,9 @@ namespace TuneLift
                     ignorePrefix = args[i + 1];
                     i++;
                 }
-                else if (lowerArg == "-l" || lowerArg == "--linux" || lowerArg == "/l")
+                else if (lowerArg == "-u" || lowerArg == "--unix" || lowerArg == "/u" || lowerArg == "-l" || lowerArg == "--linux" || lowerArg == "/l")  // Includes Linux as an alias for Unix
                 {
-                    useLinuxPaths = true;
+                    useUnixPaths = true;
                 }
                 else if (lowerArg == "-f" || lowerArg == "--find" || lowerArg == "/f" && i + 1 < args.Length)
                 {
@@ -55,6 +70,11 @@ namespace TuneLift
                     notExtended = true;
                 else if (lowerArg == "-d" || lowerArg == "--delete" || lowerArg == "/d")
                     deleteExisting = true;
+                else if (lowerArg == "-b" || lowerArg == "--base-path" || lowerArg == "/b" && i + 1 < args.Length)
+                {
+                    basePath = args[i + 1];
+                    i++;
+                }
                 else if (lowerArg.StartsWith("-") || lowerArg.StartsWith("--") || lowerArg.StartsWith("/"))
                     DisplayUsage($"Unrecognised argument: {args[i]}");
                 else // probably the folder
@@ -78,40 +98,50 @@ namespace TuneLift
                 DisplayUsage("Missing destination folder.");
         }
 
+        /// <summary>
+        /// Displays the usage information for the application, including command line options and version information. If an error message
+        /// is provided, it will be displayed and the program will exit with an error status.
+        /// </summary>
+        /// <param name="errorMessage">Error message</param>
         public static void DisplayUsage(string errorMessage = "")
         {
-            Version version = Assembly.GetExecutingAssembly().GetName().Version!;
-
             Console.WriteLine($"Usage: {System.Diagnostics.Process.GetCurrentProcess().ProcessName} [options] <destination folder>\n" +
                                 "Export iTunes audio playlists as standard or extended .m3u files.\n");
 
             if (String.IsNullOrEmpty(errorMessage))
-                Console.WriteLine( $"This is version v{version.Major}.{version.Minor}.{version.Revision}, copyright © 2020-{DateTime.Now.Year} Richard Lawrence.\n" +
+                Console.WriteLine( $"This is version {OutputVersion(version)}, copyright © 2020-{DateTime.Now.Year} Richard Lawrence.\n" +
                                     "Forklift icon by nawicon - Flaticon (https://www.flaticon.com/free-icons/forklift)\n");
 
-            Console.WriteLine(  "Playlist Selection:\n" +
+            Console.WriteLine(  "Mandatory Arguments:\n" +
+                                "  <destination folder>           The folder to export the playlists to.\n" +
+                                "\n" +
+                                "Playlist Selection:\n" +
                                 "  -ns, --no-smart                Skip exporting smart playlists.\n" +
                                 "  -np, --no-playlist             Skip exporting regular (non-smart) playlists.\n" +
-                                "  -i <text>, --ignore <text>     Exclude playlists with names starting with <text>.\n" +
+                                "  -i <text>, --ignore <text>     Exclude playlists with names starting <text>.\n" +
                                 "\n" +
                                 "Output Format:\n" +
                                 "  -8, --append-8                 Use .m3u8 file extension.\n" +
-                                "  -ne, --not-extended            Export using basic .m3u format, with no extended info.\n" +
-                                "  -l, --linux                    Use Linux-style paths and LF line endings.\n" +
+                                "  -ne, --not-extended            Export using basic .m3u format, with no extended\n" +
+                                "                                 playlist/song titles and duration information.\n" +
+                                "  -u, --unix                     Use Unix-style paths and LF line endings.\n" +
                                 "\n" +
                                 "File Path Adjustments:\n" +
                                 "  -f <text>, --find <text>       Match <text> in file path for substitution.\n" +
                                 "  -r <text>, --replace <text>    Replace matched text with <text>.\n" +
+                                "  -b <path>, --base-path <path>  Remove leading <path> from file path.\n" +
                                 "\n" +
                                 "File Management:\n" +
-                                "  -d, --delete                   Remove existing playlist files from the destination.\n" +
+                                "  -d, --delete                   Remove existing playlist files from destination.\n" +
                                 "\n" +
                                 "Help:\n" +
-                                "  -h, --help                     Show this help message.\n");
+                                "  /?, -h, --help                 Show this help message.\n" +
+                                "\n" +
+                               $"Logs are written to {Path.Combine(appDataPath, "Logs")}");
 
-            
             if (!string.IsNullOrEmpty(errorMessage))
-            { 
+            {
+                Console.WriteLine();
                 Console.WriteLine($"Error: {errorMessage}");
                 Environment.Exit(-1);
             }
@@ -119,23 +149,15 @@ namespace TuneLift
         }
 
         /// <summary>
-        /// Given a number, returns the number and either the singular or plural
-        /// version of that description
+        /// Pluralises a string based on the number provided.
         /// </summary>
-        /// <param name="num">Number</param>
-        /// <param name="single">Word if singular</param>
-        /// <param name="plural">Word if plural</param>
+        /// <param name="number"></param>
+        /// <param name="singular"></param>
+        /// <param name="plural"></param>
         /// <returns></returns>
-        public static string Pluralise(int num, string single, string plural)
+        public static string Pluralise(int number, string singular, string plural)
         {
-            string ret = num.ToString() + " ";
-
-            if (num == 1)
-                ret += single;
-            else
-                ret += plural;
-
-            return (ret);
+            return number == 1 ? $"{number} {singular}" : $"{number:N0} {plural}";
         }
 
         /// <summary>
@@ -198,23 +220,59 @@ namespace TuneLift
                 var latest = TryFetchLatestVersion(gitHubRepo);
                 if (latest != null)
                 {
-                    ini["Version"]["LatestReleaseVersion"] = latest.Value.Version;
                     ini["Version"]["LatestReleaseChecked"] = latest.Value.Timestamp;
-                    parser.WriteFile(iniPath, ini);
-                    cachedVersion = Version.Parse(latest.Value.Version);
+
+                    if (!string.IsNullOrEmpty(latest.Value.Version))
+                    {
+                        ini["Version"]["LatestReleaseVersion"] = latest.Value.Version;
+                        cachedVersion = Version.Parse(latest.Value.Version);
+                    }
+
+                    parser.WriteFile(iniPath, ini); // Always write if we got any response at all
                 }
             }
 
-            var localVersion = Assembly.GetExecutingAssembly().GetName().Version!;
-            if (cachedVersion != null && cachedVersion > localVersion)
+            if (cachedVersion != null && cachedVersion > version)
             {
                 Console.WriteLine();
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write($"   A new version ({cachedVersion}) is available!");
+                Console.Write(      $"  ℹ️ A new version ({OutputVersion(cachedVersion)}) is available!");
                 Console.ResetColor();
-                Console.WriteLine($" You are using {localVersion.Major}.{localVersion.Minor}.{localVersion.Revision}");
-                Console.WriteLine($"    Get it from https://www.github.com/{gitHubRepo}/");
+                Console.WriteLine($" You are using {OutputVersion(version)}");
+                Console.WriteLine(  $"     Get it from https://www.github.com/{gitHubRepo}/");
             }
+        }
+
+        /// <summary>
+        /// Takes a semantic version string in the format "major.minor.revision" and returns a Version object in
+        /// the format "major.minor.0.revision"
+        /// </summary>
+        /// <param name="versionString"></param>
+        /// <returns></returns>
+        public static Version? ParseSemanticVersion(string versionString)
+        {
+            if (string.IsNullOrWhiteSpace(versionString))
+                return null;
+
+            var parts = versionString.Split('.');
+            if (parts.Length != 3)
+                return null;
+
+            if (int.TryParse(parts[0], out int major) &&
+                int.TryParse(parts[1], out int minor) &&
+                int.TryParse(parts[2], out int revision))
+            {
+                try
+                {
+                    return new Version(major, minor, 0, revision);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -230,60 +288,78 @@ namespace TuneLift
             string dateStr = ini["Version"]["LatestReleaseChecked"];
             string versionStr = ini["Version"]["LatestReleaseVersion"];
 
-            bool parseSuccess = DateTime.TryParse(dateStr, out DateTime lastChecked);
-            bool isExpired = !parseSuccess || (DateTime.UtcNow - lastChecked.ToUniversalTime()).TotalDays >= 7;
-            bool hasVersion = Version.TryParse(versionStr ?? "", out Version? parsed);
+            bool hasTimestamp = DateTime.TryParse(dateStr, out DateTime lastChecked);
+            bool isExpired = !hasTimestamp || (DateTime.UtcNow - lastChecked.ToUniversalTime()).TotalDays >= 7;
 
-            if (hasVersion)
-                cachedVersion = parsed;
+            cachedVersion = ParseSemanticVersion(versionStr);
 
-            return isExpired || !hasVersion;
+            return isExpired;
         }
 
         /// <summary>
         /// Fetches the latest version from the GitHub repo by looking at the releases/latest page.
         /// </summary>
-        /// <param name="repo"></param>
-        /// <returns></returns>
-        private static (string Version, string Timestamp)? TryFetchLatestVersion(string repo)
+        /// <param name="repo">The name of the repo</param>
+        /// <returns>Version and today's date and time</returns>
+        private static (string? Version, string Timestamp)? TryFetchLatestVersion(string repo)
         {
             string url = $"https://api.github.com/repos/{repo}/releases/latest";
             using var client = new HttpClient();
 
-            Version? localVersion = Assembly.GetExecutingAssembly().GetName().Version!;
-            string ua = repo.Replace('/', '.') + "/" + localVersion;
+            string ua = repo.Replace('/', '.') + "/" + OutputVersion(version);
             client.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
 
             try
             {
-                string json = client.GetStringAsync(url).GetAwaiter().GetResult();
+                var response = client.GetAsync(url).GetAwaiter().GetResult();
+                string timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Received response, but it's a client or server error (e.g., 404, 500)
+                    return (null, timestamp);  // Still update "last checked"
+                }
+
+                string json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                 var match = Regex.Match(json, "\"tag_name\"\\s*:\\s*\"([^\"]+)\"");
-                if (!match.Success) return null;
+                if (!match.Success)
+                {
+                    return (null, timestamp);  // Response body not as expected
+                }
 
                 string version = match.Groups[1].Value.TrimStart('v', 'V');
-                return (version, DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+                return (version, timestamp);
             }
             catch
             {
+                // This means we truly couldn't reach GitHub at all
                 return null;
             }
         }
 
         /// <summary>
-        /// Checks if the console supports Unicode characters.
+        /// Given a .NET Version object, outputs the version in a semantic version format.
+        /// If the build number is greater than 0, it appends `-preX` to the version string.
         /// </summary>
-        /// <returns>True if the console does</returns>
-        static bool ConsoleSupportsUnicode()
+        /// <returns></returns>
+        public static string OutputVersion(Version? netVersion)
         {
-            try
-            {
-                Console.OutputEncoding = System.Text.Encoding.UTF8;
-                return Console.OutputEncoding.WebName == "utf-8";
-            }
-            catch
-            {
-                return false;
-            }
+            if (netVersion == null)
+                return "0.0.0";
+
+            // Use major.minor.revision from version, defaulting patch to 0 if missing
+            int major = netVersion.Major;
+            int minor = netVersion.Minor;
+            int revision = netVersion.Revision >= 0 ? netVersion.Revision : 0;
+
+            // Build the base semantic version string
+            string result = $"{major}.{minor}.{revision}";
+
+            // Append `-preX` if build is greater than 0
+            if (netVersion.Build > 0)
+                result += $"-pre{netVersion.Build}";
+
+            return result;
         }
     }
 }
