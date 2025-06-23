@@ -127,7 +127,7 @@ If the playlist will be used by other users, machines, or software, the original
 ### Help
 
 - **`/?`, `-h`, `--help`**  
-  Displays the full help text with all available options.
+  Displays the full help text with all available options, credits and the location of the log files.
 
 ## ❓ Common questions
 
