@@ -223,13 +223,13 @@ TuneLift currently meets the needs it was designed for, and no major new feature
 
 ## Version history
 
-### 1.0.0 (tbc)
+### 1.0.0 (23 June 2025)
 - 🏁 Declared as the first stable release.
 - Cleaned up version number handling, ensuring consistency and correct handling of pre-releases.
 - Added `--base-path` option to remove leading paths in playlists to make them relative.
 - Added `-l`, `--linux` and `/l` as an alias for `--unix`
 - Cleaned up various pieces of code.
-- Improved `Publish.ps1` build script for final executables.
+- Improved `Publish.ps1` build script for final executable.
 
 ### 0.9.1 (21 May 2025)
 - Changed `/l`, `-l` and `--linux` to `/u`, `-u` and `--unix` to align with [ListPorter](https://github.com/mrsilver76/listporter) command-line conventions.
