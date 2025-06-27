@@ -99,6 +99,9 @@ If `<destination folder>` doesn't exist then it will be created.
 
 If the playlist will be used by other users, machines, or software, the original file paths may not work for them. For example, a path like `D:\MyMusic` might not be accessible from a NAS or another computer. Even if the files are shared, the other system may require a different path, such as `\\mycomputer\MyMusic`. To address this, you can use the options below to rewrite paths so they match the environment where the playlist will be used:
 
+> [!TIP]
+> If you're using [ListPorter](https://github.com/mrsilver76/listporter) to upload your playlists to Plex, you probably don't need to rewrite paths! This is because ListPorter uses fuzzy matching to associate tracks, even when the paths don’t match exactly.
+
 - **`/f <text>`,`-f <text>`, `--find <text>`**  
   Searches for a specific substring in each file path. This is intended for use with `--replace` to modify paths for different devices or OSes. Searches are case-insensitive and you can only find one substring.
 
