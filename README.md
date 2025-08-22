@@ -127,7 +127,16 @@ If the playlist will be used by other users, machines, or software, the original
 - **`/d`, `-d`, `--delete`**  
   Deletes playlist files already in the destination folder before exporting new ones.
 
-### Help
+### Other Options
+
+- **`-c`, `--close`**  
+  Automatically closes iTunes after the export completes, but only if TuneLift started it. iTunes will not be closed if it was already running beforehand.
+
+- **`-nc`, `--no-check`**  
+  Disables GitHub version checks for TuneLift.
+
+>[!NOTE]
+>Version checks occur at most once every 7 days. TuneLift connects only to [this URL](https://api.github.com/repos/mrsilver76/tunelift/releases/latest) to retrieve version information. No data about you or your music library is shared with the author or GitHub - you can verify this yourself by reviewing `GitHubVersionChecker.cs`
 
 - **`/?`, `-h`, `--help`**  
   Displays the full help text with all available options, credits and the location of the log files.
@@ -225,6 +234,15 @@ TuneLift currently meets the needs it was designed for, and no major new feature
 - Forklift icon by nawicon - Flaticon (https://www.flaticon.com/free-icons/forklift)
 
 ## Version history
+
+### 1.1.0 (xx August 2025)
+- Added `-nc` (`--no-check`) to disable GitHub version checks.
+- Added `-c` (`--close`) to close iTunes after export, but only when TuneLift launched it.
+- Fixed minor formatting issue when displaying the number of tracks exported.
+- Corrected conversion of .NET build numbers to semantic version strings.
+- Improved logger performance by keeping log files open instead of repeatedly opening and closing them.
+- Refactored the code to use separate static classes to improve organisation, readability, and maintainability.
+- Relocated FAQs to a dedicated document for a cleaner, more readable README.
 
 ### 1.0.0 (23 June 2025)
 - 🏁 Declared as the first stable release.
