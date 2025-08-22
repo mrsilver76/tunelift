@@ -1,5 +1,30 @@
 # TuneLift Frequently Asked Questions
 
+Running TuneLift
+
+- Can I just double-click on this program from Windows Explorer and it run?
+- Does this work with the Apple Music app in the Windows Store?
+- Will this automatically sync new playlists or changes from iTunes?
+
+Export Behavior
+
+- What happens if a playlist already exists in the destination folder?
+- Can I export playlists to a network drive or shared folder?
+- Are tracks copied or moved, or is only the playlist file exported?
+
+Playlist Types
+
+- How are smart playlists handled differently from normal playlists?
+- Should I generate standard m3u or extended m3u files?
+
+Encoding and Path Handling
+
+- Why do you encode basic m3u files with UTF-8?
+- Can I use this for non-English filenames or folders?
+- I'm using --unix, why isn't --find matching?
+
+---
+
 ## Can I just double-click on this program from Windows Explorer and it run?
 
 The programs expects at least one command line argument to run, so double-clicking on it in Explorer will not work.
