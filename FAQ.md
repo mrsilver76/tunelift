@@ -2,9 +2,9 @@
 
 Running TuneLift
 
-- Can I just double-click on this program from Windows Explorer and it run?
-- Does this work with the Apple Music app in the Windows Store?
-- Will this automatically sync new playlists or changes from iTunes?
+- [Can I just double-click on this program from Windows Explorer and it run?](https://github.com/mrsilver76/tunelift/edit/ver1.1/FAQ.md#can-i-just-double-click-on-this-program-from-windows-explorer-and-it-run)
+- [Does this work with the Apple Music app in the Windows Store?](https://github.com/mrsilver76/tunelift/edit/ver1.1/FAQ.md#does-this-work-with-the-apple-music-app-in-the-windows-store)
+- [Will this automatically sync new playlists or changes from iTunes?](https://github.com/mrsilver76/tunelift/edit/ver1.1/FAQ.md#will-this-automatically-sync-new-playlists-or-changes-from-itunes)
 
 Export Behavior
 
@@ -43,6 +43,9 @@ However you can enable this with a couple of steps:
 
 No. TuneLift requires the classic iTunes application for Windows. The new Apple Music app (available from the Microsoft Store) does not expose a COM interface or support local music library access in the same way. Apple has not provided an alternative API or integration point for third-party tools. If you’ve already migrated your iTunes library to the Apple Music app, you’ll need to reinstall iTunes and revert the migration to use TuneLift.
 
+## Will this automatically sync new playlists or changes from iTunes?
+No. TuneLift is a manual export tool. It runs once and generates playlist files based on the current state of your iTunes library. If your playlists change later, you'll need to run the export again.
+
 ## What happens if a playlist already exists in the destination folder?
 By default, existing playlist files will be overwritten. If you’d prefer to clean out the folder first, you can use the `-d` option to delete all `.m3u` or `.m3u8` files in the destination before exporting.
 
@@ -57,9 +60,6 @@ Yes. All playlist files are encoded in UTF-8 by default, which ensures that char
 
 ## How are smart playlists handled differently from normal playlists?
 Smart playlists are evaluated in iTunes at runtime and exported as regular playlists containing fixed track lists. You can choose to exclude smart playlists with the `-ns` flag if needed.
-
-## Will this automatically sync new playlists or changes from iTunes?
-No. TuneLift is a manual export tool. It runs once and generates playlist files based on the current state of your iTunes library. If your playlists change later, you'll need to run the export again.
 
 ## Should I generate standard m3u or extended m3u files?
 It depends on the level of detail you need in your playlist:
