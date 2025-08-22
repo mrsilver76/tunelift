@@ -143,28 +143,28 @@ If the playlist will be used by other users, machines, or software, the original
 
 ## ❓ Frequently Asked Questions
 
-### Running TuneLift
+Running TuneLift
 
-- Can I just double-click on this program from Windows Explorer and it run?
-- Does this work with the Apple Music app in the Windows Store?
-- Will this automatically sync new playlists or changes from iTunes?
+- [Can I just double-click on this program from Windows Explorer and it run?](FAQ.md#can-i-just-double-click-on-this-program-from-windows-explorer-and-it-run)
+- [Does this work with the Apple Music app in the Windows Store?](FAQ.md#does-this-work-with-the-apple-music-app-in-the-windows-store)
+- [Will this automatically sync new playlists or changes from iTunes?](FAQ.md#will-this-automatically-sync-new-playlists-or-changes-from-itunes)
 
-### Export Behavior
+Export Behavior
 
-- What happens if a playlist already exists in the destination folder?
-- Can I export playlists to a network drive or shared folder?
-- Are tracks copied or moved, or is only the playlist file exported?
+- [What happens if a playlist already exists in the destination folder?](FAQ.md#what-happens-if-a-playlist-already-exists-in-the-destination-folder)
+- [Can I export playlists to a network drive or shared folder?](FAQ.md#can-i-export-playlists-to-a-network-drive-or-shared-folder)
+- [Are tracks copied or moved, or is only the playlist file exported?](FAQ.md#are-tracks-copied-or-moved-or-is-only-the-playlist-file-exported)
 
-### Playlist Types
+Playlist Types
 
-- How are smart playlists handled differently from normal playlists?
-- Should I generate standard m3u or extended m3u files?
+- [How are smart playlists handled differently from normal playlists?](FAQ.md#how-are-smart-playlists-handled-differently-from-normal-playlists)
+- [Should I generate standard m3u or extended m3u files?](FAQ.md#should-i-generate-standard-m3u-or-extended-m3u-files)
 
-### Encoding and Path Handling
+Encoding and Path Handling
 
-- Why do you encode basic m3u files with UTF-8?
-- Can I use this for non-English filenames or folders?
-- I'm using --unix, why isn't --find matching?
+- [Why do you encode basic m3u files with UTF-8?](FAQ.md#why-do-you-encode-basic-m3u-files-with-utf-8)
+- [Can I use this for non-English filenames or folders?](FAQ.md#can-i-use-this-for-non-english-filenames-or-folders)
+- [I'm using `--unix`, why isn't `--find` matching?](FAQ.md#im-using---unix-why-isnt---find-matching)
 
 ## 🛟 Questions/problems?
 
