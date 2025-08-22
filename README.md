@@ -13,6 +13,7 @@ _A Windows command line tool to export iTunes audio playlists as standard or ext
 * 🔁 Rewrite paths to make exported playlists portable.
 * 📁 Remove a common base path from file entries to make playlists relative.
 * 🧹 Delete existing exports before saving new ones.
+* ⏹️ Automatically close iTunes after export if TuneLift started it.
 
 ## 📦 Download
 
@@ -122,12 +123,12 @@ If the playlist will be used by other users, machines, or software, the original
 > [!IMPORTANT]
 > To avoid leaving a leading slash or backslash in the result, make sure your `--base-path` ends with the appropriate path separator (`\` for Windows-style paths or `/` for Linux-style paths).
 
-### File Management
+### File management
 
 - **`/d`, `-d`, `--delete`**  
   Deletes playlist files already in the destination folder before exporting new ones.
 
-### Other Options
+### Other options
 
 - **`-c`, `--close`**  
   Automatically closes iTunes after the export completes, but only if TuneLift started it. iTunes will not be closed if it was already running beforehand.
