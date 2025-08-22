@@ -2,26 +2,26 @@
 
 Running TuneLift
 
-- [Can I just double-click on this program from Windows Explorer and it run?](https://github.com/mrsilver76/tunelift/edit/ver1.1/FAQ.md#can-i-just-double-click-on-this-program-from-windows-explorer-and-it-run)
-- [Does this work with the Apple Music app in the Windows Store?](https://github.com/mrsilver76/tunelift/edit/ver1.1/FAQ.md#does-this-work-with-the-apple-music-app-in-the-windows-store)
-- [Will this automatically sync new playlists or changes from iTunes?](https://github.com/mrsilver76/tunelift/edit/ver1.1/FAQ.md#will-this-automatically-sync-new-playlists-or-changes-from-itunes)
+- [Can I just double-click on this program from Windows Explorer and it run?](FAQ.md#can-i-just-double-click-on-this-program-from-windows-explorer-and-it-run)
+- [Does this work with the Apple Music app in the Windows Store?](FAQ.md#does-this-work-with-the-apple-music-app-in-the-windows-store)
+- [Will this automatically sync new playlists or changes from iTunes?](FAQ.md#will-this-automatically-sync-new-playlists-or-changes-from-itunes)
 
 Export Behavior
 
-- What happens if a playlist already exists in the destination folder?
-- Can I export playlists to a network drive or shared folder?
-- Are tracks copied or moved, or is only the playlist file exported?
+- [What happens if a playlist already exists in the destination folder?](FAQ.md#what-happens-if-a-playlist-already-exists-in-the-destination-folder)
+- [Can I export playlists to a network drive or shared folder?](FAQ.md#can-i-export-playlists-to-a-network-drive-or-shared-folder)
+- [Are tracks copied or moved, or is only the playlist file exported?](FAQ.md#are-tracks-copied-or-moved-or-is-only-the-playlist-file-exported)
 
 Playlist Types
 
-- How are smart playlists handled differently from normal playlists?
-- Should I generate standard m3u or extended m3u files?
+- [How are smart playlists handled differently from normal playlists?](FAQ.md#how-are-smart-playlists-handled-differently-from-normal-playlists)
+- [Should I generate standard m3u or extended m3u files?](FAQ.md#should-i-generate-standard-m3u-or-extended-m3u-files)
 
 Encoding and Path Handling
 
-- Why do you encode basic m3u files with UTF-8?
-- Can I use this for non-English filenames or folders?
-- I'm using --unix, why isn't --find matching?
+- [Why do you encode basic m3u files with UTF-8?](FAQ.md#why-do-you-encode-basic-m3u-files-with-utf-8)
+- [Can I use this for non-English filenames or folders?](FAQ.md#can-i-use-this-for-non-english-filenames-or-folders)
+- [I'm using `--unix`, why isn't `--find` matching?](FAQ.md#im-using---unix-why-isnt---find-matching)
 
 ---
 
@@ -55,9 +55,6 @@ Yes, as long as the drive or shared path is accessible and writeable from your s
 ## Are tracks copied or moved, or is only the playlist file exported?
 Only the playlist file is exported. TuneLift does not move, copy or modify any of your music files. It simply generates `.m3u` or `.m3u8` files containing references to the existing file locations.
 
-## Can I use this for non-English filenames or folders?
-Yes. All playlist files are encoded in UTF-8 by default, which ensures that characters like `ü`, `é`, `ß`, or `ñ` are correctly preserved in paths and filenames.
-
 ## How are smart playlists handled differently from normal playlists?
 Smart playlists are evaluated in iTunes at runtime and exported as regular playlists containing fixed track lists. You can choose to exclude smart playlists with the `-ns` flag if needed.
 
@@ -75,6 +72,9 @@ It depends on the level of detail you need in your playlist:
 Modern operating systems support filenames with a wide range of characters, including non-Latin scripts, accented letters, and symbols. Older `m3u` files often relied on limited codepages (like ASCII or ISO-8859-1), which can't accurately represent these characters. As a result, applications that attempt to read the playlist may fail to locate the referenced files, since misencoded characters in the path make the filenames invalid or unrecognisable.
 
 TuneLift uses UTF-8 encoding to ensure all filenames, regardless of language or special symbols, are preserved correctly. 
+
+## Can I use this for non-English filenames or folders?
+Yes. All playlist files are encoded in UTF-8 by default, which ensures that characters like `ü`, `é`, `ß`, or `ñ` are correctly preserved in paths and filenames.
 
 ## I'm using `--unix`, why isn't `--find` matching?
 The `--unix` options change all slashes in the song paths before the `--find` and `--replace` logic runs. This means that if your `--find` string uses backslashes then it won’t match the transformed path.
@@ -94,8 +94,7 @@ D:/Music/Pop/track.mp3
 ```
 Since the `--find` string `"D:\Music"` doesn't match `"D:/Music"` there will be no further transformations.
 
-✅ **Correct Usage**   
-Use forward slashes in the `--find` string to match the slash transformation:
+**Correct Usage:** Use forward slashes in the `--find` string to match the slash transformation:
 ```
 --unix --find "D:/Music" --replace "/mnt/media"
 ```
