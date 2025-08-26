@@ -188,7 +188,8 @@ TuneLift currently meets the needs it was designed for, and no major new feature
 - Fixed minor formatting issue when displaying the number of tracks exported.
 - Corrected conversion of .NET build numbers to semantic version strings.
 - Improved logger performance by keeping log files open instead of repeatedly opening and closing them.
-- Refactored the code to use separate static classes to improve organisation, readability, and maintainability.
+- Split utility functions into separate static classes for clearer structure and easier navigation.
+- Resolved all .NET code analysis warnings to standardise style, remove potential pitfalls, and tidy the codebase.
 - Relocated FAQs to a dedicated document for a cleaner, more readable README.
 
 ### 1.0.0 (23 June 2025)
