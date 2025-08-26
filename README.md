@@ -28,7 +28,7 @@ This program has been tested extensively on Windows 11, but should also work on 
 Below are a couple of command scenarios for using TuneLift:
 
 ```
-TuneLift.exe /d "c:\temp\playlists" -c
+TuneLift.exe /d "c:\temp\playlists" /c
 
 TuneLift.exe --delete "c:\temp\playlists" --close
 ```
@@ -131,10 +131,10 @@ If the playlist will be used by other users, machines, or software, the original
 
 ### Other options
 
-- **`-c`, `--close`**  
+- **`/c`, `-c`, `--close`**  
   Automatically closes iTunes after the export completes, but only if TuneLift started it. iTunes will not be closed if it was already running beforehand.
 
-- **`-nc`, `--no-check`**  
+- **`/nc`, `-nc`, `--no-check`**  
   Disables GitHub version checks for TuneLift.
 
 >[!NOTE]
@@ -183,7 +183,7 @@ TuneLift currently meets the needs it was designed for, and no major new feature
 
 ## Version history
 
-### 1.1.0 (xx August 2025)
+### 1.1.0 (26 August 2025)
 - Added `-nc` (`--no-check`) to disable GitHub version checks.
 - Added `-c` (`--close`) to close iTunes after export, but only when TuneLift launched it.
 - Fixed minor formatting issue when displaying the number of tracks exported.
