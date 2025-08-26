@@ -18,36 +18,109 @@
  */
 
 using System.Reflection;
-using static TuneLift.Helpers;
 
 namespace TuneLift
 {
-    public class Program
+    internal static class Program
     {
-        public static string exportFolder = "";  // Folder to export playlists to
-        public static bool ignoreSmartPlaylists = false;  // Ignore smart playlists
-        public static bool ignorePlaylists = false;  // Ignore regular playlists
-        public static string ignorePrefix = "";  // Ignore playlists prefixed with this string
-        public static bool useUnixPaths = false;  // Use Unix-style line endings and path format
-        public static string findText = "";  // Text to find in file paths
-        public static string replaceText = "";  // Text to replace found text with in file paths
-        public static bool appendEight = false;  // Append .8 to the end of the file extension (for .m3u8 files)
-        public static bool notExtended = false;  // Export as standard .m3u files instead of extended .m3u files
-        public static bool deleteExisting = false;  // Delete existing .m3u files in the export folder before exporting new ones
-        public static string basePath = "";  // Base path to remove from file paths before exporting
+#region Export settings
 
-        // Internal global variables
-        public static Version version = Assembly.GetExecutingAssembly().GetName().Version!;  // Version of the application, set from the assembly version
-        public static string appDataPath = "";  // Path to the application data folder for storing settings and logs
+        /// <summary>
+        /// Folder to export playlists to
+        /// </summary>
+        public static string ExportFolder { get; set; } = "";
 
-        static void Main(string[] args)
+        /// <summary>
+        /// Ignore smart playlists
+        /// </summary>
+        public static bool IgnoreSmartPlaylists { get; set; }
+
+        /// <summary>
+        /// Ignore regular playlists
+        /// </summary>
+        public static bool IgnorePlaylists { get; set; }
+
+        /// <summary>
+        /// Ignore playlists prefixed with this string
+        /// </summary>
+        public static string IgnorePrefix { get; set; } = "";
+
+        /// <summary>
+        /// Use Unix-style line endings and path format
+        /// </summary>
+        public static bool UseUnixPaths { get; set; }
+
+        /// <summary>
+        /// Text to find in file paths
+        /// </summary>
+        public static string FindText { get; set; } = "";
+
+        /// <summary>
+        /// Text to replace found text with in file paths
+        /// </summary>
+        public static string ReplaceText { get; set; } = "";
+
+        /// <summary>
+        /// Append .8 to the end of the file extension (for .m3u8 files)
+        /// </summary>
+        public static bool AppendEight { get; set; }
+
+        /// <summary>
+        /// Export as standard .m3u files instead of extended .m3u files
+        /// </summary>
+        public static bool NotExtended { get; set; }
+
+        /// <summary>
+        /// Delete existing .m3u files in the export folder before exporting new ones
+        /// </summary>
+        public static bool DeleteExisting { get; set; }
+
+        /// <summary>
+        /// Base path to remove from file paths before exporting
+        /// </summary>
+        public static string BasePath { get; set; } = "";
+
+        /// <summary>
+        /// Check for updates on GitHub when the program finishes
+        /// </summary>
+        public static bool CheckForUpdates { get; set; } = true;
+
+        /// <summary>
+        /// Close iTunes after exporting playlists. This will only work if iTunes was launched by TuneLift.
+        /// </summary>
+        public static bool CloseiTunesAfterExport { get; set; }
+
+        #endregion
+
+        #region Internal variables
+
+        /// <summary>
+        /// Version of the application, set from the assembly version
+        /// </summary>
+        public static Version ProgramVersion { get; } = Assembly.GetExecutingAssembly().GetName().Version!;
+
+        /// <summary>
+        /// Path to the application data folder for storing settings and logs
+        /// </summary>
+        public static string AppDataPath { get; set; } = "";
+
+        /// <summary>
+        /// Was iTunes launched by TuneLift? If so, we can close it when done if the user requested that.
+        /// </summary>
+        private static bool ITunesLaunchedByUs { get; set; }
+
+        #endregion
+
+        private static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
+            
+            AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TuneLift");
+            Logger.Initialise(Path.Combine(AppDataPath, "Logs"));
 
-            InitialiseLogger();
-            ParseCommandLineArguments(args);
+            CommandLineParser.ParseArguments(args);
 
-            Console.WriteLine($"TuneLift v{OutputVersion(version)}, Copyright © 2020-{DateTime.Now.Year} Richard Lawrence");
+            Console.WriteLine($"TuneLift v{VersionHelper.ToSemanticString(ProgramVersion)}, Copyright © 2020-{DateTime.Now.Year} Richard Lawrence");
             Console.WriteLine("Export iTunes audio playlists as standard or extended .m3u files.");
             Console.WriteLine($"https://github.com/mrsilver76/tunelift\n");
             Console.WriteLine($"This program comes with ABSOLUTELY NO WARRANTY. This is free software,");
@@ -55,27 +128,34 @@ namespace TuneLift
             Console.WriteLine($"the documentation for details.");
             Console.WriteLine();
 
+            Logger.Write("Starting TuneLift...");
 
-            Logger("Starting TuneLift...");
+            // We do a lot of things in this function: bootstrapping, connecting to iTunes,
+            // enumerating and filtering playlists, exporting playlists to disk and rewriting paths.
+            //
+            // Although it would make sense to break this up into smaller functions, this program
+            // is reasonably feature-complete and has a limited lifespan (given that Apple will
+            // eventually retire iTunes, especially the one with the COM support), so for now
+            // we will keep it all in one place.
 
-            if (Directory.Exists(exportFolder))
+            if (Directory.Exists(ExportFolder))
             {
                 // Delete any files existing in destination folder
-                if (deleteExisting)
+                if (DeleteExisting)
                     DeleteExistingFiles();
                 else
-                    Logger($"Exporting to folder: {exportFolder}");
+                    Logger.Write($"Exporting to folder: {ExportFolder}");
             }
             else  // Folder doesn't exist
             {
                 try
                 {
-                    Directory.CreateDirectory(exportFolder);
-                    Logger($"Created folder for export: {exportFolder}");
+                    Directory.CreateDirectory(ExportFolder);
+                    Logger.Write($"Created folder for export: {ExportFolder}");
                 }
                 catch (Exception e)
                 {
-                    Logger($"Unable to create folder '{exportFolder}': {e.Message}");
+                    Logger.Write($"Unable to create folder '{ExportFolder}': {e.Message}");
                     Environment.Exit(-1);
                 }
 
@@ -85,11 +165,20 @@ namespace TuneLift
             Type? iTunesAppType = Type.GetTypeFromProgID("iTunes.Application");
             if (iTunesAppType == null)
             {
-                Logger("iTunes does not appear to be installed on this computer.");
+                Logger.Write("iTunes does not appear to be installed on this computer.");
                 Environment.Exit(-1);
             }
 
-            Logger("Connecting to iTunes...");
+            Logger.Write("Connecting to iTunes...");
+
+            // Since we cannot tell from the COM interface if iTunes is running or not, we will cheat by
+            // checking the process list and assuming that if it is running, it will not be launched by TuneLift.
+
+            if (System.Diagnostics.Process.GetProcessesByName("iTunes").Length == 0)
+                ITunesLaunchedByUs = true;
+            else
+                ITunesLaunchedByUs = false;
+
             dynamic? iTunes = null;
             try
             {
@@ -97,24 +186,24 @@ namespace TuneLift
             }
             catch (Exception ex)
             {
-                Logger($"Unable to connect to iTunes: {ex.Message}");
+                Logger.Write($"Unable to connect to iTunes: {ex.Message}");
                 Environment.Exit(-1);
             }
 
             // Work out how many playlists we want to export
 
-            Logger("Getting playlist details...");
+            Logger.Write("Getting playlist details...");
 
             dynamic? library = iTunes?.LibraryPlaylist;
             if (library == null)
             {
-                Logger("Unable to access iTunes library.");
+                Logger.Write("Unable to access iTunes library.");
                 Environment.Exit(-1);
             }
             dynamic? playlistsCollection = iTunes?.LibrarySource?.Playlists;
             if (playlistsCollection == null)
             {
-                Logger("Unable to access iTunes playlists.");
+                Logger.Write("Unable to access iTunes playlists.");
                 Environment.Exit(-1);
             }
 
@@ -133,11 +222,11 @@ namespace TuneLift
                     totalTracks += (int)playlist.Tracks.Count;
                 }
             }
-            Logger($"Found {Pluralise(wantedPlaylists, "playlist", "playlists")} (totaling {Pluralise(totalTracks, "track", "tracks")}) to export.");
+            Logger.Write($"Found {TextUtils.Pluralise(wantedPlaylists, "playlist", "playlists")} (totaling {TextUtils.Pluralise(totalTracks, "track", "tracks")}) to export.");
 
             // Now export those tracks
-            string lineEnding = useUnixPaths ? "\n" : "\r\n";
-            string fileEnding = appendEight ? ".m3u8" : ".m3u";
+            string lineEnding = UseUnixPaths ? "\n" : "\r\n";
+            string fileEnding = AppendEight ? ".m3u8" : ".m3u";
             int playlistCount = 0;
 
             // Loop through the playlists and export them
@@ -151,18 +240,18 @@ namespace TuneLift
                 {
                     string playlistTitle = (string)playlist.Name;
                     playlistCount++;
-                    Logger($"Exporting {playlistCount}/{wantedPlaylists}: {playlistTitle} ({(int)playlist.Tracks.Count} tracks)");
+                    Logger.Write($"Exporting {playlistCount}/{wantedPlaylists}: {playlistTitle} ({TextUtils.Pluralise((int)playlist.Tracks.Count, "track", "tracks")})");
 
                     // Flag to indicate if there is content in this playlist to save
                     bool contentToSave = false;
 
                     // Sanitize playlist name for a valid filename
                     string sanitizedTitle = string.Join("_", playlistTitle.Split(Path.GetInvalidFileNameChars()));
-                    string filePath = Path.Combine(exportFolder, sanitizedTitle + fileEnding);
+                    string filePath = Path.Combine(ExportFolder, sanitizedTitle + fileEnding);
 
                     // Store the playlist contents in a string
                     string playlistContents = "";
-                    if (!notExtended)
+                    if (!NotExtended)
                         playlistContents = "#EXTM3U" + lineEnding + "#PLAYLIST:" + playlistTitle + lineEnding;
 
                     foreach (dynamic track in playlist.Tracks)
@@ -176,12 +265,12 @@ namespace TuneLift
                             string? location = (string?)track.Location;
                             if (location != null)
                             {
-                                string fileExtension = Path.GetExtension(location)?.ToLower() ?? string.Empty;
+                                string fileExtension = Path.GetExtension(location)?.ToLowerInvariant() ?? string.Empty;
                                 if (fileExtension == ".mp3" || fileExtension == ".m4a" || fileExtension == ".m4b")
                                 {
                                     contentToSave = true; // We have something to save
                                     // Write track information
-                                    if (notExtended)
+                                    if (NotExtended)
                                         playlistContents += RewriteLocation(location) + lineEnding;
                                     else
                                     {
@@ -198,61 +287,92 @@ namespace TuneLift
                     if (contentToSave)
                         File.WriteAllText(filePath, playlistContents, System.Text.Encoding.UTF8);
                     else
-                        Logger($"No audio content to save for playlist: {playlistTitle}");
+                        Logger.Write($"No audio content to save for playlist: {playlistTitle}");
                 }
             }
 
-            // Ensure the iTunes object is released (important for COM interop)
-            if (iTunes != null)
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(iTunes);
+            // We now need to handle disconnecting from iTunes
 
-            Logger("TuneLift finished.");
-            CheckLatestRelease();
+            if (iTunes != null)
+            {
+                // Did the user want us to close iTunes?
+                if (CloseiTunesAfterExport)
+                {
+                    // Did we actually launch iTunes?
+                    if (ITunesLaunchedByUs)
+                    {
+                        Logger.Write("Attempting to close iTunes...");
+                        try
+                        {
+                            iTunes.Quit();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Write($"Unable to close iTunes: {ex.Message}");
+                        }
+                    }
+                    else
+                    {
+                        Logger.Write("iTunes was not started by TuneLift; leaving it running.");
+                    }
+                }
+
+                // Ensure the iTunes object is released (important for COM interop)
+
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(iTunes);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+
+            Logger.Write("TuneLift finished.");
+
+            if (CheckForUpdates)
+                CheckLatestRelease();
+
             Environment.Exit(0);
         }
 
-
         /// <summary>
-        /// Takes a path and rewrites it depending on whether useUnixPaths is configured and if there are any search and replace paramaters defined.
+        /// Takes a path and rewrites it depending on whether UseUnixPaths is configured and if there are any search and replace paramaters defined.
         /// </summary>
         /// <param name="path">Path and filename of a file</param>
         /// <returns>Converted path and filename</returns>
-        static string RewriteLocation(string path)
+        private static string RewriteLocation(string path)
         {
             string newPath = path;
 
-            // Remove the basePath if it is set and the path starts with it
+            // Remove the BasePath if it is set and the path starts with it
 
-            if (!string.IsNullOrEmpty(basePath) && newPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
-                newPath = newPath.Substring(basePath.Length);
+            if (!string.IsNullOrEmpty(BasePath) && newPath.StartsWith(BasePath, StringComparison.OrdinalIgnoreCase))
+                newPath = newPath[BasePath.Length..];
 
             // If Unix paths are being used then swap \ for /
 
-            if (useUnixPaths)
+            if (UseUnixPaths)
                 newPath = newPath.Replace('\\', '/');
 
             // Do other search and repace here
 
-            if (!string.IsNullOrEmpty(findText))
-                newPath = newPath.Replace(findText, replaceText, StringComparison.CurrentCultureIgnoreCase);
+            if (!string.IsNullOrEmpty(FindText))
+                newPath = newPath.Replace(FindText, ReplaceText, StringComparison.CurrentCultureIgnoreCase);
 
             return newPath;
         }
 
         /// <summary>
-        /// Deletes existing .m3u and .m3u8 files in the export folder if deleteExisting is set to true.
+        /// Deletes existing .m3u and .m3u8 files in the export folder if DeleteExisting is set to true.
         /// </summary>
-        static void DeleteExistingFiles()
+        private static void DeleteExistingFiles()
         {
-            if (!deleteExisting)
+            if (!DeleteExisting)
                 return;  // Nothing to do
 
-            Logger($"Deleting existing playlists from: {exportFolder}");
+            Logger.Write($"Deleting existing playlists from: {ExportFolder}");
 
             int count = 0;
             try
             {
-                foreach (string file in Directory.EnumerateFiles(exportFolder))
+                foreach (string file in Directory.EnumerateFiles(ExportFolder))
                 {
                     string extension = Path.GetExtension(file);
                     if (extension.Equals(".m3u", StringComparison.OrdinalIgnoreCase) || extension.Equals(".m3u8", StringComparison.OrdinalIgnoreCase))
@@ -264,10 +384,10 @@ namespace TuneLift
             }
             catch (Exception ex)
             {
-                Logger($"Unable to delete: {ex.Message}");
+                Logger.Write($"Unable to delete: {ex.Message}");
                 return;
             }
-            Logger($"Sucessfully deleted {Pluralise(count, "playlist", "playlists")}");
+            Logger.Write($"Sucessfully deleted {TextUtils.Pluralise(count, "playlist", "playlists")}.");
         }
 
         /// <summary>
@@ -276,7 +396,7 @@ namespace TuneLift
         /// <param name="playlist">iTunes playlist</param>
         /// <param name="showNotification">Output to the user if this playlist has been skipped</param>
         /// <returns></returns>
-        static bool IsWantedPlaylist(dynamic playlist, Boolean showNotification)
+        private static bool IsWantedPlaylist(dynamic playlist, Boolean showNotification)
         {
             // Needs to be a user playlist (ITPlaylistKindUser = 2)
             if ((int)playlist.Kind != 2) return false;
@@ -293,36 +413,54 @@ namespace TuneLift
             if ((int)playlist.Tracks.Count == 0)
             {
                 if (showNotification)
-                    Logger($"Ignoring empty playlist: {playlist.Name}");
+                    Logger.Write($"Ignoring empty playlist: {playlist.Name}");
                 return false;
             }
 
             // ...and not smart (if configured to ignore those)
-            if (ignoreSmartPlaylists && (bool)upl.Smart)
+            if (IgnoreSmartPlaylists && (bool)upl.Smart)
             {
                 if (showNotification)
-                    Logger($"Ignoring smart playlist: {playlist.Name}");
+                    Logger.Write($"Ignoring smart playlist: {playlist.Name}");
                 return false;
             }
 
             // ...and not a regular playlist (if configured to ignore those)
-            if (ignorePlaylists && !(bool)upl.Smart)
+            if (IgnorePlaylists && !(bool)upl.Smart)
             {
                 if (showNotification)
-                    Logger($"Ignoring regular playlist: {playlist.Name}");
+                    Logger.Write($"Ignoring regular playlist: {playlist.Name}");
                 return false;
             }
 
             // ...and doesn't start with something we want to ignore
-            if (!string.IsNullOrEmpty(ignorePrefix) && ((string)playlist.Name).StartsWith(ignorePrefix, StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(IgnorePrefix) && ((string)playlist.Name).StartsWith(IgnorePrefix, StringComparison.OrdinalIgnoreCase))
             {
                 if (showNotification)
-                    Logger($"Ignoring playlist with prefix: {playlist.Name}");
+                    Logger.Write($"Ignoring playlist with prefix: {playlist.Name}");
                 return false;
             }
 
             // ...then this is a playlist we want
             return true;
+        }
+
+        /// <summary>
+        /// Checks GitHub to see if there is a newer release of TuneLift available and notifies the user if so.
+        /// </summary>
+        private static void CheckLatestRelease()
+        {
+            var result = GitHubVersionChecker.CheckLatestRelease(ProgramVersion, "mrsilver76/tunelift", Path.Combine(AppDataPath, "versionCheck.ini"));
+
+            if (result.UpdateAvailable)
+            {
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write($"  ℹ️ A new version ({result.LatestVersion}) is available!");
+                Console.ResetColor();
+                Console.WriteLine($" You are using {result.CurrentVersion}");
+                Console.WriteLine($"     Get it from https://www.github.com/{result.Repo}/");
+            }
         }
     }
 }
