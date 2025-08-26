@@ -28,12 +28,13 @@ This program has been tested extensively on Windows 11, but should also work on 
 Below are a couple of command scenarios for using TuneLift:
 
 ```
-TuneLift.exe /d "c:\temp\playlists"
+TuneLift.exe /d "c:\temp\playlists" -c
 
-TuneLift.exe --delete "c:\temp\playlists"
+TuneLift.exe --delete "c:\temp\playlists" --close
 ```
 * Export all playlists from iTunes and save them into `C:\Temp\Playlists`.
 * Delete any playlists already in the folder before starting.
+* Close iTunes after exporting (if it was started by TuneLift)
 
 ```
 TuneLift.exe "C:\Users\MrSilver\Documents\Playlists" -ne -i "run" -ns
