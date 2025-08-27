@@ -67,7 +67,7 @@ TuneLift.exe [options] <destination folder>
 
 If `<destination folder>` doesn't exist then it will be created.
 
-`[options]` can be 1 or more of the following:
+`[options]` can be 0 or more of the following:
 
 ### Playlist selection
 
