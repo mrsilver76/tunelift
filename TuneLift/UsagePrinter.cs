@@ -35,7 +35,7 @@ namespace TuneLift
                               "Export iTunes audio playlists as standard or extended .m3u files.\n");
 
             if (String.IsNullOrEmpty(errorMessage))
-                Console.WriteLine($"This is version {VersionHelper.ToSemanticString(Program.ProgramVersion)}, copyright © 2020-{DateTime.Now.Year} Richard Lawrence.\n" +
+                Console.WriteLine($"This is version {VersionHelper.OutputVersion(Program.ProgramVersion)}, copyright © 2020-{DateTime.Now.Year} Richard Lawrence.\n" +
                                   "Forklift icon by nawicon - Flaticon (https://www.flaticon.com/free-icons/forklift)\n");
 
             Console.WriteLine("Mandatory Arguments:\n" +

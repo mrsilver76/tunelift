@@ -23,7 +23,7 @@ namespace TuneLift
 {
     internal static class Program
     {
-#region Export settings
+        #region Export settings
 
         /// <summary>
         /// Folder to export playlists to
@@ -114,13 +114,13 @@ namespace TuneLift
         private static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            
+
             AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TuneLift");
             Logger.Initialise(Path.Combine(AppDataPath, "Logs"));
 
             CommandLineParser.ParseArguments(args);
 
-            Console.WriteLine($"TuneLift v{VersionHelper.ToSemanticString(ProgramVersion)}, Copyright © 2020-{DateTime.Now.Year} Richard Lawrence");
+            Console.WriteLine($"TuneLift v{VersionHelper.OutputVersion(ProgramVersion)}, Copyright © 2020-{DateTime.Now.Year} Richard Lawrence");
             Console.WriteLine("Export iTunes audio playlists as standard or extended .m3u files.");
             Console.WriteLine($"https://github.com/mrsilver76/tunelift\n");
             Console.WriteLine($"This program comes with ABSOLUTELY NO WARRANTY. This is free software,");
@@ -158,7 +158,6 @@ namespace TuneLift
                     Logger.Write($"Unable to create folder '{ExportFolder}': {e.Message}");
                     Environment.Exit(-1);
                 }
-
             }
 
             // Connect to iTunes
@@ -210,6 +209,8 @@ namespace TuneLift
             int wantedPlaylists = 0;
             int totalTracks = 0;
 
+            // First pass: count how many playlists we want to export and how many tracks they contain
+
             foreach (dynamic playlist in playlistsCollection)
             {
                 if (playlist == null)
@@ -224,12 +225,14 @@ namespace TuneLift
             }
             Logger.Write($"Found {TextUtils.Pluralise(wantedPlaylists, "playlist", "playlists")} (totaling {TextUtils.Pluralise(totalTracks, "track", "tracks")}) to export.");
 
-            // Now export those tracks
+            // Now export those tracks for each of the playlists we want
+
             string lineEnding = UseUnixPaths ? "\n" : "\r\n";
             string fileEnding = AppendEight ? ".m3u8" : ".m3u";
             int playlistCount = 0;
 
-            // Loop through the playlists and export them
+            // Loop through the playlists
+
             foreach (dynamic playlist in playlistsCollection)
             {
                 if (playlist == null)
@@ -251,10 +254,22 @@ namespace TuneLift
 
                     // Store the playlist contents in a string
                     string playlistContents = "";
+
+                    // Write the header if this is an extended playlist
                     if (!NotExtended)
                         playlistContents = "#EXTM3U" + lineEnding + "#PLAYLIST:" + playlistTitle + lineEnding;
 
-                    foreach (dynamic track in playlist.Tracks)
+                    // Since tracks come out in the order that they were added to iTunes, we need to
+                    // sort them by PlayOrderIndex for the order to match what the user sees in iTunes.
+
+                    var orderedTracks = new List<dynamic>();
+                    foreach (var track in playlist.Tracks)
+                        orderedTracks.Add(track);
+                    orderedTracks.Sort((a, b) => ((int)a.PlayOrderIndex).CompareTo((int)b.PlayOrderIndex));
+
+                    // Loop through the tracks in the playlist. 
+
+                    foreach (dynamic track in orderedTracks)
                     {
                         if (track == null)
                             continue; // Skip null tracks
@@ -280,7 +295,6 @@ namespace TuneLift
                                 }
                             }
                         }
-
                     }
 
                     // Write out the playlist
@@ -450,7 +464,9 @@ namespace TuneLift
         /// </summary>
         private static void CheckLatestRelease()
         {
-            var result = GitHubVersionChecker.CheckLatestRelease(ProgramVersion, "mrsilver76/tunelift", Path.Combine(AppDataPath, "versionCheck.ini"));
+            string repo = "mrsilver76/tunelift";
+            string iniPath = Path.Combine(AppDataPath, "versionCheck.ini");
+            var result = GitHubVersionChecker.CheckLatestRelease(ProgramVersion, repo, iniPath);
 
             if (result.UpdateAvailable)
             {
@@ -458,8 +474,8 @@ namespace TuneLift
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write($"  ℹ️ A new version ({result.LatestVersion}) is available!");
                 Console.ResetColor();
-                Console.WriteLine($" You are using {result.CurrentVersion}");
-                Console.WriteLine($"     Get it from https://www.github.com/{result.Repo}/");
+                Console.WriteLine($" You are using {VersionHelper.OutputVersion(ProgramVersion)}");
+                Console.WriteLine($"     Get it from https://www.github.com/{repo}/");
             }
         }
     }
