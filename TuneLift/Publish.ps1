@@ -1,10 +1,9 @@
 # PowerShell script to build and package a C# project for multiple architectures
-# Version 1.0.3 - 7th August 2025
+# Version 1.0.4 - 19th September 2025
 
 # === User Configurable Section ===
 
 # Hardcoded list of target architectures
-#$architectures = @("win-x64", "linux-x64", "linux-arm", "linux-arm64", "osx-arm64", "osx-x64")
 $architectures = @("win-x64")
 
 # === Helper Functions ===
@@ -168,26 +167,20 @@ foreach ($arch in $architectures) {
     # Clean publish folder
     Clear-Folder -folderPath $publishFolder
 
-    # Run dotnet publish
-    $publishCmd = @(
-        "publish", """$csproj""",
-        "-c Release",
-        "-r $arch",
-        "--self-contained false",
-        "/p:PublishSingleFile=true",
-        "/p:PublishTrimmed=false",
-        "/p:IncludeNativeLibrariesForSelfExtract=false",
-        "-o", """$publishFolder"""
-    ) -join " "
+	& dotnet publish $csproj.FullName `
+		-c Release `
+		-r $arch `
+		--self-contained false `
+		/p:PublishSingleFile=true `
+		/p:PublishTrimmed=false `
+		/p:IncludeNativeLibrariesForSelfExtract=false `
+		-o $publishFolder
 
-    Write-Host "Running: dotnet $publishCmd"
-    $proc = Start-Process -FilePath dotnet -ArgumentList $publishCmd -NoNewWindow -Wait -PassThru
-    Write-Host "Command finished"
-	
-    if ($proc.ExitCode -ne 0) {
-        Write-Error "dotnet publish failed for $arch with exit code $($proc.ExitCode)"
-        exit 1
-    }
+	# Check exit code
+	if ($LASTEXITCODE -ne 0) {
+		Write-Error "dotnet publish failed for $arch with exit code $LASTEXITCODE"
+		exit 1
+	}
 
     # Rename executable
     Rename-Executable -folderPath $publishFolder -projectName $projectName -version $version -architecture $arch -multipleArch $multipleArch

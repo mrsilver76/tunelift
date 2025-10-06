@@ -1,20 +1,51 @@
 ﻿/*
- * TuneLift - Export iTunes audio playlists as standard or extended .m3u files.
- * Copyright (C) 2020-2025 Richard Lawrence
- * 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
+ * GitHubVersionChecker.cs
+ * Version 1.0.2
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *  
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, see
- * <https://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ * Usage:
+ * -------
+ * This class provides a simple way to check GitHub for the latest release of your application
+ * and determine whether an update is available.
+ *
+ * 1. Add a reference to IniParser (NuGet: IniParser) to handle caching in an INI file.
+ *
+ * 2. Call `GitHubVersionChecker.CheckLatestRelease` from your code:
+ *
+ *      var currentVersion = new Version(1, 0, 2, 0);  // Your app's current version
+ *      var repo = "owner/repo";                       // GitHub repository in "owner/repo" format
+ *      var iniPath = "path/to/cache.ini";             // File path to store cached version info
+ *
+ *      var result = GitHubVersionChecker.CheckLatestRelease(currentVersion, repo, iniPath);
+ *
+ * 3. The returned `VersionCheckResult` contains:
+ *      - UpdateAvailable (bool): true if a newer release exists
+ *      - LatestVersion (Version?): the latest version found, null if unavailable
+ *
+ * 4. The method automatically caches the last check in the provided INI file to avoid
+ *    unnecessary network calls. It will re-check GitHub if more than 7 days have passed.
+ *
+ * Notes:
+ * -------
+ * - The version string in GitHub releases should follow "major.minor.revision" (e.g., "1.0.2").
+ * - The check respects semantic versioning but converts the revision to the fourth segment
+ *   of System.Version (major.minor.0.revision) for comparison.
+ * - The HTTP request uses a simple User-Agent header derived from the repository and current
+ *   version. Without one, GitHub will reject the request.
  */
 
 using IniParser;
@@ -40,9 +71,7 @@ namespace TuneLift
     /// </summary>
     internal readonly record struct VersionCheckResult(
         bool UpdateAvailable,  // Indicates if a newer version is available
-        Version CurrentVersion,  // The currently running version of the application
-        Version? LatestVersion,  // The latest version available, or null if not found
-        string Repo  // The GitHub repository in the form "owner/repo"
+        Version? LatestVersion  // The latest version available, or null if not found
     );
 
     /// <summary>
@@ -62,7 +91,7 @@ namespace TuneLift
         /// <param name="gitHubRepo">The GitHub repository to check for the latest release, specified in the format "owner/repo".</param>
         /// <param name="iniPath">The file path to the INI configuration file used to cache version check data.</param>
         /// <returns>A <see cref="VersionCheckResult"/> object containing information about whether an update is available, the
-        /// current version, the latest version (if available), and the GitHub repository checked.</returns>
+        /// current version and the latest version (if available)</returns>
         public static VersionCheckResult CheckLatestRelease(Version currentVersion, string gitHubRepo, string iniPath)
         {
             var parser = new FileIniDataParser();
@@ -87,7 +116,7 @@ namespace TuneLift
 
             bool updateAvailable = cachedVersion != null && cachedVersion > currentVersion;
 
-            return new VersionCheckResult(updateAvailable, currentVersion, cachedVersion, gitHubRepo);
+            return new VersionCheckResult(updateAvailable, cachedVersion);
         }
 
         /// <summary>
