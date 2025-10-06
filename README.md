@@ -183,6 +183,12 @@ TuneLift currently meets the needs it was designed for, and no major new feature
 
 ## Version history
 
+### 1.1.1 (06 October 2025)
+- Fixed a bug that exported the tracks in a playlist in the wrong order.
+- Updated GitHub version checker to latest version.
+- Updated logger to latest version.
+- Updated publish script to latest version.
+
 ### 1.1.0 (26 August 2025)
 - Added `-nc` (`--no-check`) to disable GitHub version checks.
 - Added `-c` (`--close`) to close iTunes after export, but only when TuneLift launched it.
