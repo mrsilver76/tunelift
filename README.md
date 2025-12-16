@@ -19,7 +19,7 @@ _A Windows command line tool to export iTunes audio playlists as standard or ext
 
 Get the latest version from https://github.com/mrsilver76/tunelift/releases.
 
-Each release includes the following files (x.x.x denotes the version number):
+Each release includes the following files (`x.x.x` denotes the version number):
 
 |Platform|Download|
 |:--------|:-----------|
