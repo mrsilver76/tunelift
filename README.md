@@ -17,7 +17,16 @@ _A Windows command line tool to export iTunes audio playlists as standard or ext
 
 ## 📦 Download
 
-Get the latest version from https://github.com/mrsilver76/tunelift/releases. If you don't want the source code then you should download the exe file. 
+Get the latest version from https://github.com/mrsilver76/tunelift/releases.
+
+Each release includes the following files (x.x.x denotes the version number):
+
+|Platform|Download|
+|:--------|:-----------|
+|Microsoft Windows 10 & 11|`TuneLift-x.x.x.exe` ✅ **Most users want this**|
+|Other/Developers|Source code (zip / tar.gz)|
+
+There is no installer. Just download the executable and run it either by double-clicking or from the command line. 
 
 You may need to install the [.NET 8.0 runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime) first. 
 
