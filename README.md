@@ -1,4 +1,8 @@
 # TuneLift
+
+<p><img src="https://img.shields.io/badge/Windows-supported-0078D6?logo=windows&logoColor=white" alt="Windows"> <img src="https://img.shields.io/badge/.NET-C%23-512BD4?logo=dotnet&logoColor=white" alt=".NET/C#"> 
+<img src="https://img.shields.io/github/license/mrsilver76/tunelift?logo=gnu&logoColor=white" alt="GPL License"></p>
+
 _A Windows command line tool to export iTunes audio playlists as standard or extended `.m3u` files. It can also adjust file paths for compatibility with other computers, operating systems (like Linux), NAS devices and embedded systems._
 
 >[!TIP]
