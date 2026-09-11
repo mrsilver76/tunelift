@@ -169,6 +169,7 @@ Export Behavior
 - [What happens if a playlist already exists in the destination folder?](FAQ.md#what-happens-if-a-playlist-already-exists-in-the-destination-folder)
 - [Can I export playlists to a network drive or shared folder?](FAQ.md#can-i-export-playlists-to-a-network-drive-or-shared-folder)
 - [Are tracks copied or moved, or is only the playlist file exported?](FAQ.md#are-tracks-copied-or-moved-or-is-only-the-playlist-file-exported)
+- [Why doesn't TuneLift export my playlist in the order I see in iTunes?](FAQ.md#why-doesnt-tunelift-export-my-playlist-in-the-order-i-see-in-itunes)
 
 Playlist Types
 
