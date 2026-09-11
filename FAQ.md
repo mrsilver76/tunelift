@@ -11,6 +11,7 @@ Export Behavior
 - [What happens if a playlist already exists in the destination folder?](FAQ.md#what-happens-if-a-playlist-already-exists-in-the-destination-folder)
 - [Can I export playlists to a network drive or shared folder?](FAQ.md#can-i-export-playlists-to-a-network-drive-or-shared-folder)
 - [Are tracks copied or moved, or is only the playlist file exported?](FAQ.md#are-tracks-copied-or-moved-or-is-only-the-playlist-file-exported)
+- [Why doesn't TuneLift export my playlist in the order I see in iTunes?](FAQ.md#why-doesnt-tunelift-export-my-playlist-in-the-order-i-see-in-itunes)
 
 Playlist Types
 
@@ -54,6 +55,13 @@ Yes, as long as the drive or shared path is accessible and writeable from your s
 
 ## Are tracks copied or moved, or is only the playlist file exported?
 Only the playlist file is exported. TuneLift does not move, copy or modify any of your music files. It simply generates `.m3u` or `.m3u8` files containing references to the existing file locations.
+
+## Why doesn't TuneLift export my playlist in the order I see in iTunes?
+TuneLift exports tracks in the playlist's play order, not necessarily the order currently displayed in iTunes.
+
+iTunes lets you sort a playlist by Artist, Album, Date Added, etc. without changing its underlying play order. Unfortunately, the iTunes interface exposed to TuneLift does not provide the current display sort order.
+
+If you want TuneLift to export the playlist in a particular order, sort the playlist in iTunes, select the tracks, then choose "Copy to Play Order" from the playlist's context menu. TuneLift will then export the tracks in that order.
 
 ## How are smart playlists handled differently from normal playlists?
 Smart playlists are evaluated in iTunes at runtime and exported as regular playlists containing fixed track lists. You can choose to exclude smart playlists with the `-ns` flag if needed.
