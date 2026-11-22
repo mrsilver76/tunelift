@@ -1,4 +1,4 @@
-# TuneLift
+# <img src="https://raw.githubusercontent.com/mrsilver76/tunelift/refs/heads/main/TuneLift/TuneLift.ico" width="48" height="48"> TuneLift
 
 <p><img src="https://img.shields.io/badge/Windows-supported-0078D6?logo=windows&logoColor=white" alt="Windows"> <img src="https://img.shields.io/badge/.NET-C%23-512BD4?logo=dotnet&logoColor=white" alt=".NET/C#"> 
 <img src="https://img.shields.io/github/license/mrsilver76/tunelift?logo=gnu&logoColor=white" alt="GPL License"> <img src="https://img.shields.io/github/downloads/mrsilver76/tunelift/total" alt="total downloads"></p>
