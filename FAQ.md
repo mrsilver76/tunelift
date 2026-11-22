@@ -6,6 +6,12 @@ Running TuneLift
 - [Does this work with the Apple Music app in the Windows Store?](FAQ.md#does-this-work-with-the-apple-music-app-in-the-windows-store)
 - [Will this automatically sync new playlists or changes from iTunes?](FAQ.md#will-this-automatically-sync-new-playlists-or-changes-from-itunes)
 
+Playlist Source
+
+- [Why is TuneLift unable to connect to my iTunes?](FAQ.md#why-is-tunelift-unable-to-connect-to-my-itunes)
+- [Where do I find the iTunes XML library file, and how do I create it?](FAQ.md#where-do-i-find-the-itunes-xml-library-file-and-how-do-i-create-it)
+
+
 Export Behavior
 
 - [What happens if a playlist already exists in the destination folder?](FAQ.md#what-happens-if-a-playlist-already-exists-in-the-destination-folder)
@@ -35,17 +41,71 @@ However you can enable this with a couple of steps:
 1. Place `TuneLift.exe` wherever you would like to store it.
 2. Right-click on `TuneLift.exe`, select "Show more options" and then "Create shortcut".
 3. Right-click on the newly created `TuneLift.exe - Shortcut` and select "Properties"
-4. In the text box labelled "Target" add the following to the end of the string: `-d "%USERPROFILE%\Documents\Exported iTunes Playlists"`. This tells TuneLift to export all the playlists to a folder called `Exported iTunes Playlists` within your `Documents` folder. The `-d` tells TuneLift to delete any existing playlists in there before exporting. You can change these arguments to anything you want as documented [here](#command-line-options).
+4. In the text box labelled "Target" add the following to the end of the string: `-d "%USERPROFILE%\Documents\Exported iTunes Playlists"`. This tells TuneLift to export all the playlists to a folder called `Exported iTunes Playlists` within your `Documents` folder. The `-d` tells TuneLift to delete any existing playlists in there before exporting. You can change these arguments to anything you want as documented [here](README.md#command-line-options).
 5. Click on "OK"
 6. To run, double-click on `TuneLift.exe - Shortcut`. You can rename this to something more useful and move it elsewhere if you'd like.
 7. Once TuneLift has finished running, the pop-up window will close automatically.
 
 ## Does this work with the Apple Music app in the Windows Store?
 
-No. TuneLift requires the classic iTunes application for Windows. The new Apple Music app (available from the Microsoft Store) does not expose a COM interface or support local music library access in the same way. Apple has not provided an alternative API or integration point for third-party tools. If you’ve already migrated your iTunes library to the Apple Music app, you’ll need to reinstall iTunes and revert the migration to use TuneLift.
+No. The Apple Music app (available from the Microsoft Store) does not expose a COM interface or support local music library access in the same way, and Apple has not provided an alternative API or integration point for third-party tools.
+
+Apple has several versions of iTunes for Windows, and they differ in what TuneLift can use:
+
+|Version|Direct connection (COM)|XML library file (`-x`)|
+|:--------|:-----------:|:-----------:|
+|Classic iTunes for Windows|✅ Available|✅ Available|
+|iTunes from the Microsoft Store|❌ Not available|✅ Available|
+|Apple Music app for Windows|❌ Not available|❌ Not available|
+
+If you've already migrated your iTunes library to the Apple Music app, you'll need to reinstall iTunes (either version) to use TuneLift. For more on why TuneLift can't connect, see [Why is TuneLift unable to connect to my iTunes?](#why-is-tunelift-unable-to-connect-to-my-itunes). For how to use an XML file, see [Where do I find the iTunes XML library file, and how do I create it?](#where-do-i-find-the-itunes-xml-library-file-and-how-do-i-create-it).
 
 ## Will this automatically sync new playlists or changes from iTunes?
 No. TuneLift is a manual export tool. It runs once and generates playlist files based on the current state of your iTunes library. If your playlists change later, you'll need to run the export again.
+
+<a name="com"></a>
+## Why is TuneLift unable to connect to my iTunes?
+
+There are two possible reasons for the warning that TuneLift shows when it can't connect to iTunes:
+
+1. You don't have iTunes installed on your computer.
+2. You have a newer version of iTunes installed (usually from the Microsoft Store) where Apple, unfortunately, no longer supports the method that TuneLift uses to connect.
+
+In both cases, your workaround is to use the `-x` option to read your playlists from an iTunes XML library file.
+
+For more information, see [Where do I find the iTunes XML library file, and how do I create it?](#where-do-i-find-the-itunes-xml-library-file-and-how-do-i-create-it)
+
+## Where do I find the iTunes XML library file, and how do I create it?
+
+The `-x` (`--xml`) option reads playlists from an iTunes XML library file instead of from iTunes. There are two ways to get that file.
+
+### Option 1: Let iTunes keep the file up to date
+
+Turn on the sharing setting:
+
+1. Open iTunes and go to **Edit > Preferences > Advanced**.
+2. Tick **Share iTunes Library XML with other applications**.
+3. Click **OK**.
+
+From then on, iTunes writes the XML file to the folder below and updates it when your library changes. The file is usually called `iTunes Music Library.xml`. Older versions of iTunes call it `iTunes Library.xml`.
+
+```
+C:\Users\<your name>\Music\iTunes
+```
+
+Replace `<your name>` with your Windows user name. You can also type `%USERPROFILE%\Music\iTunes` into the File Explorer address bar, or into the Run box opened with Windows+R, and press Enter to open the same folder. If the file is not there, check that the sharing box is still ticked, then search your Music folder for `*Library.xml`.
+
+### Option 2: Export a one-off copy
+
+In iTunes, choose **File > Library > Export Library...** and save the file wherever you like. An exported copy does not change when your library does, so export it again after you make changes.
+
+### Run TuneLift with the file
+
+Give TuneLift the full path to your file after `-x`. For example, using the file from option 1, this will export your playlists to a folder called `Exported iTunes Playlists` within your `Documents` folder:
+
+```
+TuneLift.exe -x "C:\Users\<your name>\Music\iTunes\iTunes Music Library.xml" -d "%USERPROFILE%\Documents\Exported iTunes Playlists"
+```
 
 ## What happens if a playlist already exists in the destination folder?
 By default, existing playlist files will be overwritten. If you’d prefer to clean out the folder first, you can use the `-d` option to delete all `.m3u` or `.m3u8` files in the destination before exporting.
@@ -79,7 +139,7 @@ It depends on the level of detail you need in your playlist:
 
 Modern operating systems support filenames with a wide range of characters, including non-Latin scripts, accented letters, and symbols. Older `m3u` files often relied on limited codepages (like ASCII or ISO-8859-1), which can't accurately represent these characters. As a result, applications that attempt to read the playlist may fail to locate the referenced files, since misencoded characters in the path make the filenames invalid or unrecognisable.
 
-TuneLift uses UTF-8 encoding to ensure all filenames, regardless of language or special symbols, are preserved correctly. 
+TuneLift uses UTF-8 encoding to ensure all filenames, regardless of language or special symbols, are preserved correctly.
 
 ## Can I use this for non-English filenames or folders?
 Yes. All playlist files are encoded in UTF-8 by default, which ensures that characters like `ü`, `é`, `ß`, or `ñ` are correctly preserved in paths and filenames.

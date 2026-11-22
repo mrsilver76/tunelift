@@ -1,10 +1,11 @@
 # PowerShell script to build and package a C# project for multiple architectures
-# Version 1.0.4 - 19th September 2025
+# Version 1.0.7 - 12th October 2026
 
 # === User Configurable Section ===
 
-# Hardcoded list of target architectures
-$architectures = @("win-x64")
+# Hardcoded list of default architectures. This can be overridden with
+# the command line
+$DefaultArchitectures = "win-x64"
 
 # === Helper Functions ===
 
@@ -128,6 +129,20 @@ function ArchiveFolderExcludingPdb {
 
 # === Main Script ===
 
+# Work from the script's own folder (the project folder), so the script can
+# be started from anywhere.
+Set-Location -LiteralPath $PSScriptRoot
+
+# Set the architecture list based either on the command line or, if empty,
+# from the default list.
+$ArchitectureList = if ($args.Count -gt 0) {
+    $args[0]
+} else {
+    $DefaultArchitectures
+}
+# Split up into an array, allow spaces
+$architectures = $ArchitectureList.Split(',').Trim() | Where-Object { $_ }
+
 # Find the .csproj file in current directory (assuming exactly one)
 $csproj = Get-ChildItem -Filter *.csproj | Select-Object -First 1
 if (-not $csproj) {
@@ -170,7 +185,7 @@ foreach ($arch in $architectures) {
 	& dotnet publish $csproj.FullName `
 		-c Release `
 		-r $arch `
-		--self-contained false `
+		--no-self-contained  `
 		/p:PublishSingleFile=true `
 		/p:PublishTrimmed=false `
 		/p:IncludeNativeLibrariesForSelfExtract=false `

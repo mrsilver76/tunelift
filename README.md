@@ -6,11 +6,11 @@
 _A Windows command line tool to export iTunes audio playlists as standard or extended `.m3u` files. It can also adjust file paths for compatibility with other computers, operating systems (like Linux), NAS devices and embedded systems._
 
 >[!TIP]
->Using Plex for music? [ListPorter](https://github.com/mrsilver76/listporter) makes it easy to import your resulting `.m3u` files to Plex Media Server.
+>**Using Plex for music?** [ListPorter](https://github.com/mrsilver76/listporter) makes it easy to import your resulting `.m3u` files to Plex Media Server.
 
 ## 🧰 Features
-* 🔗 Connects directly to iTunes via the exposed COM interface, rather than parsing XML files.
-* 💾 Export playlists in basic or extended M3U formats.
+* 🔗 Connects to iTunes via either the COM interface or by reading the iTunes XML library file.
+* 💾 Export playlists in basic or extended M3U formats. 
 * 🧠 Export only smart (dynamic rule-based) playlists, regular (manual) playlists or all playlists.
 * 🚫 Exclude exporting any playlist whose name starts with specified text.
 * 🐧 Convert paths (forward slashes and LF endings) for Linux.
@@ -18,6 +18,28 @@ _A Windows command line tool to export iTunes audio playlists as standard or ext
 * 📁 Remove a common base path from file entries to make playlists relative.
 * 🧹 Delete existing exports before saving new ones.
 * ⏹️ Automatically close iTunes after export if TuneLift started it.
+
+## ✅ Compatible iTunes versions
+
+Apple has released several versions of iTunes for Windows, and they don't all offer the same features. 
+
+TuneLift can read your playlists in two ways:
+
+1. By connecting directly to iTunes (the COM interface)
+2. By reading an iTunes XML library file with the `-x` option.
+ 
+What works depends on which version you have:
+
+|Version|Direct connection (COM)|XML library file (`-x`)|
+|:--------|:-----------:|:-----------:|
+|[Classic iTunes for Windows](https://www.apple.com/itunes/) (see note)|✅ Available|✅ Available|
+|[iTunes from the Microsoft Store](https://apps.microsoft.com/detail/9pb2mz1zmb1s)|❌ Not available|✅ Available|
+|[Apple Music app for Windows](https://apps.microsoft.com/detail/9pfhdd62mxs1)|❌ Not available|❌ Not available|
+
+> [!NOTE]
+> Apple's iTunes page doesn't link directly to the classic version for Windows. To find it, scroll to the very bottom of the page and click **Windows** under "Looking for other versions?".
+
+See [Playlist source](#playlist-source) for how to use the XML option, and the [FAQ](FAQ.md#why-is-tunelift-unable-to-connect-to-my-itunes) if TuneLift can't connect.
 
 ## 📦 Download
 
@@ -32,7 +54,7 @@ Each release includes the following files (`x.x.x` denotes the version number):
 
 There is no installer. Just download the executable and run it either by double-clicking or from the command line. 
 
-You may need to install the [.NET 8.0 runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime) first. 
+You may need to install the [.NET 10.0 runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0/runtime) first. 
 
 This program has been tested extensively on Windows 11, but should also work on Windows 10.
 
@@ -50,6 +72,17 @@ TuneLift.exe --delete "c:\temp\playlists" --close
 * Close iTunes after exporting (if it was started by TuneLift)
 
 ```
+TuneLift.exe /x "C:\Users\MrSilver\Music\iTunes\iTunes Music Library.xml" /d "c:\temp\playlists"
+
+TuneLift.exe --xml "C:\Users\MrSilver\Music\iTunes\iTunes Music Library.xml" --delete "c:\temp\playlists"
+```
+* Read the playlists from an iTunes XML library file instead of connecting to iTunes. iTunes doesn't need to be installed or running.
+* Export all playlists and save them into `C:\Temp\Playlists`.
+* Delete any playlists already in the folder before starting.
+
+See [Where do I find the iTunes XML library file, and how do I create it?](FAQ.md#where-do-i-find-the-itunes-xml-library-file-and-how-do-i-create-it) if you don't have the file.
+
+```
 TuneLift.exe "C:\Users\MrSilver\Documents\Playlists" -ne -i "run" -ns
 
 TuneLift.exe "C:\Users\MrSilver\Documents\Playlists" --not-extended --ignore "run" --no-smart
@@ -60,7 +93,7 @@ TuneLift.exe "C:\Users\MrSilver\Documents\Playlists" --not-extended --ignore "ru
 * Don't export smart (dynamic rule-based) playlists.
 
 ```
-TuneLift.exe \\raspberry\pi\playlists -d -l -f "C:/Users/MrSilver/Music/iTunes/iTunes Media/Music" -r "/home/pi/music"
+TuneLift.exe \\raspberry\pi\playlists -d -u -f "C:/Users/MrSilver/Music/iTunes/iTunes Media/Music" -r "/home/pi/music"
 
 TuneLift.exe \\raspberry\pi\playlists --delete --unix --find "C:/Users/MrSilver/Music/iTunes/iTunes Media/Music" --replace "/home/pi/music"
 ```
@@ -70,7 +103,7 @@ TuneLift.exe \\raspberry\pi\playlists --delete --unix --find "C:/Users/MrSilver/
 * Replace `C:\Users\MrSilver\Music\iTunes\iTunes Media\Music` with `/home/pi/music`.
 
 > [!IMPORTANT]
-> When using `--unix`, path slashes are converted before any `--find` and `--replace` operations. Make sure your `--find` string reflects the adjusted slash style. In the example above, backslashes are converted to `/`, so `--find` must also use forward slashes (`/`.
+> When using `--unix`, path slashes are converted before any `--find` and `--replace` operations. Make sure your `--find` string reflects the adjusted slash style. In the example above, backslashes are converted to `/`, so `--find` must also use forward slashes (`/`).
 
 ## 💻 Command line options
 
@@ -82,7 +115,25 @@ If `<destination folder>` doesn't exist then it will be created.
 
 `[options]` can be 0 or more of the following:
 
+### Playlist source
+
+By default, TuneLift connects directly to iTunes via the COM interface. If you have the _classic iTunes app for Windows_ installed then it should work. Testing has been performed on version 12.13.12.3.
+
+If this does not work (e.g. you don't have iTunes installed or you installed iTunes from the Microsoft Store) then you will need to use the option below. For more detail, see [Why is TuneLift unable to connect to my iTunes?](FAQ.md#why-is-tunelift-unable-to-connect-to-my-itunes)
+
+- **`/x <file>`, `-x <file>`, `--xml <file>`**  
+  Reads the playlists from an iTunes XML library file instead of from iTunes. iTunes doesn't need to be installed or running for this to work. 
+  
+  The file is usually called `iTunes Music Library.xml` and is in `Music\iTunes`. If the file is missing or isn't an iTunes library, TuneLift may be able to suggest where to look.
+  
+  `--close` has no effect with this option.
+
+> [!IMPORTANT]
+> iTunes only writes the XML library file if you turn it on. In iTunes, go to **Edit > Preferences > Advanced** and tick **Share iTunes Library XML with other applications**. Without it, you cannot use this option!
+
 ### Playlist selection
+
+Please note that only `.mp3`, `.m4a` and `.m4b` tracks are exported.
 
 - **`/ns`, `-ns`, `--no-smart`**  
   Skips smart (dynamic rule-based) playlists and exports only regular (manual) ones.
@@ -99,7 +150,7 @@ If `<destination folder>` doesn't exist then it will be created.
   Exports playlists with the `.m3u8` extension instead of `.m3u`.
 
 > [!NOTE]
-> **Playlist files are always encoded in UTF-8.** This ensures broad compatibility with file paths and file names that contain non-ASCII characters (eg. accented letters, umlauts or non-Latin symbols). The `--append-8` flag simply changes the extension to `.m3u8`.
+> **Playlist files are always encoded in UTF-8.** A byte order mark is added so that Windows programs recognise this, except when `--unix` is used (Unix tools can treat it as stray text). This ensures broad compatibility with file paths and file names that contain non-ASCII characters (eg. accented letters, umlauts or non-Latin symbols). The `--append-8` flag simply changes the extension to `.m3u8`.
 
 - **`/ne`, `-ne`, `--not-extended`**  
   Outputs basic `.m3u` files without extended metadata (track duration or title). This is useful when trying to use the playlists with simpler or legacy media players.
@@ -140,12 +191,14 @@ If the playlist will be used by other users, machines, or software, the original
 ### File management
 
 - **`/d`, `-d`, `--delete`**  
-  Deletes playlist files already in the destination folder before exporting new ones.
+  Deletes playlist files already in the destination folder before exporting new ones. Nothing is deleted if there are no playlists to export, so a failed or empty run leaves your existing playlists in place.
+
+  Without `--delete`, playlist files are only overwritten, never removed. If a playlist has since become empty (or has no exportable tracks), its old file stays in the folder and still lists the old tracks.
 
 ### Other options
 
 - **`/c`, `-c`, `--close`**  
-  Automatically closes iTunes after the export completes, but only if TuneLift started it. iTunes will not be closed if it was already running beforehand.
+  Automatically closes iTunes after the export completes, but only if TuneLift started it. iTunes will not be closed if it was already running beforehand. This option does nothing if you are exporting using the iTunes Library XML file (`--xml`).
 
 - **`/nc`, `-nc`, `--no-check`**  
   Disables GitHub version checks for TuneLift.
@@ -156,6 +209,8 @@ If the playlist will be used by other users, machines, or software, the original
 - **`/?`, `-h`, `--help`**  
   Displays the full help text with all available options, credits and the location of the log files.
 
+Logs are written to `%APPDATA%\TuneLift\Logs` and one file per day in the format `log-yyyy-MM-dd.log`. Files older than 14 days are deleted at startup.
+
 ## ❓ Frequently Asked Questions
 
 Running TuneLift
@@ -163,6 +218,11 @@ Running TuneLift
 - [Can I just double-click on this program from Windows Explorer and it run?](FAQ.md#can-i-just-double-click-on-this-program-from-windows-explorer-and-it-run)
 - [Does this work with the Apple Music app in the Windows Store?](FAQ.md#does-this-work-with-the-apple-music-app-in-the-windows-store)
 - [Will this automatically sync new playlists or changes from iTunes?](FAQ.md#will-this-automatically-sync-new-playlists-or-changes-from-itunes)
+
+Playlist Source
+
+- [Why is TuneLift unable to connect to my iTunes?](FAQ.md#why-is-tunelift-unable-to-connect-to-my-itunes)
+- [Where do I find the iTunes XML library file, and how do I create it?](FAQ.md#where-do-i-find-the-itunes-xml-library-file-and-how-do-i-create-it)
 
 Export Behavior
 
@@ -188,59 +248,13 @@ Please raise an issue at https://github.com/mrsilver76/tunelift/issues.
 
 ## 💡 Future development: open but unplanned
 
-TuneLift currently meets the needs it was designed for, and no major new features are planned at this time. However, the project remains open to community suggestions and improvements. If you have ideas or see ways to enhance the tool, please feel free to submit a [feature request](https://github.com/mrsilver76/tunelift/issues).
+TuneLift currently meets the needs it was designed for, and no major new features are planned at this time. However suggestions are welcome as a [feature request](https://github.com/mrsilver76/tunelift/issues).
 
 ## 📝 Attribution
 
 - Apple, iTunes, and macOS are trademarks of Apple Inc., registered in the U.S. and other countries. This tool is not affiliated with or endorsed by Apple Inc.
 - Forklift icon by nawicon - Flaticon (https://www.flaticon.com/free-icons/forklift)
 
-## Version history
+## 🕰️ Version history
 
-### 1.1.1 (06 October 2025)
-- Fixed a bug that exported the tracks in a playlist in the wrong order.
-- Updated GitHub version checker to latest version.
-- Updated logger to latest version.
-- Updated publish script to latest version.
-
-### 1.1.0 (26 August 2025)
-- Added `-nc` (`--no-check`) to disable GitHub version checks.
-- Added `-c` (`--close`) to close iTunes after export, but only when TuneLift launched it.
-- Fixed minor formatting issue when displaying the number of tracks exported.
-- Corrected conversion of .NET build numbers to semantic version strings.
-- Improved logger performance by keeping log files open instead of repeatedly opening and closing them.
-- Split utility functions into separate static classes for clearer structure and easier navigation.
-- Resolved all .NET code analysis warnings to standardise style, remove potential pitfalls, and tidy the codebase.
-- Relocated FAQs to a dedicated document for a cleaner, more readable README.
-
-### 1.0.0 (23 June 2025)
-- 🏁 Declared as the first stable release.
-- Cleaned up version number handling, ensuring consistency and correct handling of pre-releases.
-- Added `--base-path` option to remove leading paths in playlists to make them relative.
-- Added `-l`, `--linux` and `/l` as an alias for `--unix`
-- Cleaned up various pieces of code.
-- Improved `Publish.ps1` build script for final executable.
-
-### 0.9.1 (21 May 2025)
-- Changed `/l`, `-l` and `--linux` to `/u`, `-u` and `--unix` to align with [ListPorter](https://github.com/mrsilver76/listporter) command-line conventions.
-- Fixed an issue in the version checker that could cause excessive requests to GitHub under certain conditions.
-- Fixed an issue in the version checker caused by a mismatch between .NET assembly versioning and GitHub's semantic versioning.
-- Fixed a bug that prevented audiobooks from being included in playlists.
-- Fixed a bug where playlists with no audio content were still being written to disk.
-- Greatly improved documentation for better clarity and usability.
-
-
-### 0.9.0 (12 May 2025)
-- Initial release, a C# port from [iTunes Playlist Exporter](https://github.com/mrsilver76/itunes_playlist_exporter/).
-- Removed Plex importing functionality, now handled by a separate tool called [ListPorter](https://github.com/mrsilver76/listporter/).
-- Moved all options to command line, no editing of code required.
-- Added automatic version checking with update notifications.
-- Logger now writes output to a log file instead of just the console.
-- Added `--no-playlist` to skip regular playlists and export only smart ones.
-- Added `--append-8` to use `.m3u8` extension instead of `.m3u`.
-- Added `--delete` to remove `.m3u` files before exporting (for clean re-exports)
-
-
-
-
-
+See [CHANGELOG.md](CHANGELOG.md)

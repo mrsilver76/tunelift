@@ -1,6 +1,6 @@
 ﻿/*
  * TuneLift - Export iTunes audio playlists as standard or extended .m3u files.
- * Copyright (C) 2020-2025 Richard Lawrence
+ * Copyright (C) 2020 Richard Lawrence
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,7 +28,8 @@ namespace TuneLift
         /// Given a .NET Version object, outputs the version in a semantic version format.
         /// If the build number is greater than 0, it appends "(dev build X)" to the version string.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="netVersion">The version to format, or null.</param>
+        /// <returns>The version as "major.minor.revision", or "0.0.0" if null.</returns>
         public static string OutputVersion(Version? netVersion)
         {
             if (netVersion == null)
@@ -37,7 +38,9 @@ namespace TuneLift
             // Use major.minor.revision from version, defaulting patch to 0 if missing
             int major = netVersion.Major;
             int minor = netVersion.Minor;
-            int revision = netVersion.Revision >= 0 ? netVersion.Revision : 0;
+            int revision = 0;
+            if (netVersion.Revision >= 0)
+                revision = netVersion.Revision;
 
             // Build the base semantic version string
             string result = $"{major}.{minor}.{revision}";
